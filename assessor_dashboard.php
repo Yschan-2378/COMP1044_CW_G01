@@ -25,6 +25,7 @@ $assigned_students = $stmt->fetchAll();
 
 <body>
     <h1>Assessor Portal</h1>
+    <a href="view_results.php"><button>View My Graded Results</button></a>
     <a href="logout.php">Logout</a>
     <hr>
 

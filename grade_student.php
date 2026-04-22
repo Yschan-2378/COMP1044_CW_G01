@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Assessor') {
 
 $message = "";
 
-// get the ID from the URL when the page first loads
+//get student's internship ID so we know who we are grading
 if (isset($_GET['internship_id'])) {
     $internship_id = $_GET['internship_id'];
 } elseif (isset($_POST['internship_id'])) {
@@ -20,6 +20,7 @@ if (isset($_GET['internship_id'])) {
 
 // handle Form Submission and Calculation
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     // grab all marks from your HTML inputs
     $task = floatval($_POST['task']);
     $safety = floatval($_POST['safety']);
@@ -74,6 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 <!DOCTYPE html>
+<html>
 
 <body>
     <h2>Internship Result Entry and Mark Calculation </h2>

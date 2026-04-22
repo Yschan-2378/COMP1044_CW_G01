@@ -54,6 +54,7 @@ $assessors = $pdo->query("SELECT user_id, username FROM Users WHERE role = 'Asse
 
 <body>
     <h1>Welcome to the Admin Dashboard</h1>
+    <a href="view_results.php"><button>View All Results & Search</button></a>
     <a href="logout.php">Logout</a>
     <hr>
 
