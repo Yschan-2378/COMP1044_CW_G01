@@ -32,7 +32,7 @@ export function TableBody({ children, className = "", ...props }) {
 export function TableRow({ children, className = "", ...props }) {
     return (
         <tr
-            className={`border-t border-[rgba(91,97,110,0.2)] ${className}`}
+            className={`border-t border-[rgba(91,97,110,0.2)] transition-colors hover:bg-[#f8f9fb] ${className}`}
             {...props}
         >
             {children}

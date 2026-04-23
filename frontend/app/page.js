@@ -66,7 +66,7 @@ export default function Home() {
                 <CardContent className="flex gap-4 flex-col">
                     <div className="text-5xl ">498</div>
                     <div className="w-full flex justify-end">
-                        <Button>View all</Button>
+                        <Button variant="secondary">View all</Button>
                     </div>
                 </CardContent>
             </Card>
