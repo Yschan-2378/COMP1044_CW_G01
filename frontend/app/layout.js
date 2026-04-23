@@ -1,25 +1,6 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import {
-    Sidebar,
-    SidebarHeader,
-    SidebarTitle,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarNav,
-    SidebarItem,
-    SidebarFooter,
-} from "@/components/sidebar";
-
-import {
-    SquaresFour,
-    Users,
-    UserGear,
-    Briefcase,
-    ChartBar,
-    UserCircle,
-} from "@phosphor-icons/react/dist/ssr";
+import AdminSidebar from "@/components/admin-sidebar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     variable: "--font-plus-jakarta-sans",
@@ -38,53 +19,7 @@ export default function RootLayout({ children }) {
             className={`${plusJakartaSans.variable}  h-full antialiased`}
         >
             <body className="h-screen overflow-hidden flex">
-                <Sidebar>
-                    <SidebarHeader>
-                        <SidebarTitle>Admin Portal</SidebarTitle>
-                    </SidebarHeader>
-
-                    <SidebarContent>
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Main</SidebarGroupLabel>
-                            <SidebarNav>
-                                <SidebarItem
-                                    href="/dashboard"
-                                    icon={SquaresFour}
-                                    label="Dashboard"
-                                    active
-                                />
-                                <SidebarItem
-                                    href="/students"
-                                    icon={Users}
-                                    label="Students"
-                                />
-                                <SidebarItem
-                                    href="/assessors"
-                                    icon={UserGear}
-                                    label="Assessors"
-                                />
-                                <SidebarItem
-                                    href="/internships"
-                                    icon={Briefcase}
-                                    label="Internships"
-                                />
-                                <SidebarItem
-                                    href="/results"
-                                    icon={ChartBar}
-                                    label="Results"
-                                />
-                            </SidebarNav>
-                        </SidebarGroup>
-                    </SidebarContent>
-
-                    <SidebarFooter>
-                        <SidebarItem
-                            href="/profile"
-                            icon={UserCircle}
-                            label="Profile"
-                        />
-                    </SidebarFooter>
-                </Sidebar>
+                <AdminSidebar />
                 {children}
             </body>
         </html>

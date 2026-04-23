@@ -1,10 +1,21 @@
-export function Modal({ open, children }) {
+export function Modal({ open, children, size = "md" }) {
     if (!open) return null;
+
+    const widths = {
+        sm: "max-w-md",
+        md: "max-w-lg",
+        lg: "max-w-2xl",
+        xl: "max-w-4xl",
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40" />
-            <div className="relative z-10 w-full max-w-lg rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d]">
+            <div
+                className={`relative z-10 w-full ${
+                    widths[size] || widths.md
+                } rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d]`}
+            >
                 {children}
             </div>
         </div>
