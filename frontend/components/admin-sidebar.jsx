@@ -1,13 +1,11 @@
 "use client";
 
-import {
-    SquaresFour,
-    Users,
-    UserGear,
-    Briefcase,
-    ChartBar,
-    UserCircle,
-} from "@phosphor-icons/react/dist/ssr";
+import { SquaresFour } from "@phosphor-icons/react/dist/icons/SquaresFour";
+import { Users } from "@phosphor-icons/react/dist/icons/Users";
+import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
+import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
+import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
+import { UserCircle } from "@phosphor-icons/react/dist/icons/UserCircle";
 
 import {
     Sidebar,

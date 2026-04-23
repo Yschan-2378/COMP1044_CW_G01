@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CaretDown, Check } from "@phosphor-icons/react/dist/ssr";
+import { CaretDown } from "@phosphor-icons/react/dist/icons/CaretDown";
+import { Check } from "@phosphor-icons/react/dist/icons/Check";
 
 function Dropdown({
     value,

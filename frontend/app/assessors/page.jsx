@@ -1,18 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-    Plus,
-    MagnifyingGlass,
-    PencilSimple,
-    Trash,
-    Eye,
-    UserGear,
-    Users,
-    Pulse,
-    ArrowsClockwise,
-    Copy,
-} from "@phosphor-icons/react/dist/ssr";
+import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
+import { PencilSimple } from "@phosphor-icons/react/dist/icons/PencilSimple";
+import { Trash } from "@phosphor-icons/react/dist/icons/Trash";
+import { Eye } from "@phosphor-icons/react/dist/icons/Eye";
+import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
+import { Users } from "@phosphor-icons/react/dist/icons/Users";
+import { Pulse } from "@phosphor-icons/react/dist/icons/Pulse";
+import { ArrowsClockwise } from "@phosphor-icons/react/dist/icons/ArrowsClockwise";
+import { Copy } from "@phosphor-icons/react/dist/icons/Copy";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
@@ -803,7 +801,7 @@ export default function AssessorsPage() {
                         <span className="font-semibold text-[#0a0b0d]">
                             {resetTarget?.name}
                         </span>
-                        . Share it securely — they'll be prompted to change it
+                        . Share it securely — they&apos;ll be prompted to change it
                         on next sign-in.
                     </ModalDescription>
                 </ModalHeader>

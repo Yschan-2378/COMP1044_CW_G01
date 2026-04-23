@@ -1,15 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-    Plus,
-    MagnifyingGlass,
-    PencilSimple,
-    Trash,
-    GraduationCap,
-    Briefcase,
-    Users,
-} from "@phosphor-icons/react/dist/ssr";
+import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
+import { PencilSimple } from "@phosphor-icons/react/dist/icons/PencilSimple";
+import { Trash } from "@phosphor-icons/react/dist/icons/Trash";
+import { GraduationCap } from "@phosphor-icons/react/dist/icons/GraduationCap";
+import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
+import { Users } from "@phosphor-icons/react/dist/icons/Users";
 
 import Button from "@/components/button";
 import Input from "@/components/input";

@@ -1,15 +1,13 @@
 "use client";
 
-import {
-    Plus,
-    Briefcase,
-    ChartBar,
-    UserGear,
-    ListChecks,
-    Clock,
-    ArrowUpRight,
-    TrendUp,
-} from "@phosphor-icons/react/dist/ssr";
+import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
+import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
+import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
+import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
+import { ListChecks } from "@phosphor-icons/react/dist/icons/ListChecks";
+import { Clock } from "@phosphor-icons/react/dist/icons/Clock";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/icons/ArrowUpRight";
+import { TrendUp } from "@phosphor-icons/react/dist/icons/TrendUp";
 
 import Button from "@/components/button";
 import Badge from "@/components/badge";

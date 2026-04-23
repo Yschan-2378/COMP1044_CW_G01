@@ -1,4 +1,4 @@
-import { Circle } from "@phosphor-icons/react/dist/ssr";
+import { Circle } from "@phosphor-icons/react/dist/icons/Circle";
 
 export { default as SidebarItem } from "./sidebar-item";
 
