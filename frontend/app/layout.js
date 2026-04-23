@@ -1,5 +1,28 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import {
+    Sidebar,
+    SidebarHeader,
+    SidebarTitle,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarNav,
+    SidebarItem,
+    SidebarItemIcon,
+    SidebarItemText,
+    SidebarFooter,
+} from "@/components/sidebar";
+
+import {
+    LayoutDashboard,
+    FileText,
+    Users,
+    Building2,
+    CheckCircle2,
+    BarChart3,
+    Settings,
+} from "lucide-react";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     variable: "--font-plus-jakarta-sans",
@@ -17,7 +40,72 @@ export default function RootLayout({ children }) {
             lang="en"
             className={`${plusJakartaSans.variable}  h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex ">
+                <Sidebar>
+                    <SidebarHeader>
+                        <SidebarTitle>Internship Portal</SidebarTitle>
+                    </SidebarHeader>
+
+                    <SidebarContent>
+                        <SidebarGroup>
+                            <SidebarGroupLabel>Main</SidebarGroupLabel>
+                            <SidebarNav>
+                                <SidebarItem
+                                    href="/dashboard"
+                                    icon={LayoutDashboard}
+                                    label="Dashboard"
+                                    active
+                                />
+                                <SidebarItem
+                                    href="/applications"
+                                    icon={FileText}
+                                    label="Applications"
+                                />
+                                <SidebarItem
+                                    href="/students"
+                                    icon={Users}
+                                    label="Students"
+                                />
+                                <SidebarItem
+                                    href="/companies"
+                                    icon={Building2}
+                                    label="Companies"
+                                />
+                            </SidebarNav>
+                        </SidebarGroup>
+
+                        <SidebarGroup>
+                            <SidebarGroupLabel>Management</SidebarGroupLabel>
+                            <SidebarNav>
+                                <SidebarItem
+                                    href="/approvals"
+                                    icon={CheckCircle2}
+                                    label="Approvals"
+                                />
+                                <SidebarItem
+                                    href="/reports"
+                                    icon={BarChart3}
+                                    label="Reports"
+                                />
+                                <SidebarItem
+                                    href="/settings"
+                                    icon={Settings}
+                                    label="Settings"
+                                />
+                            </SidebarNav>
+                        </SidebarGroup>
+                    </SidebarContent>
+
+                    <SidebarFooter>
+                        <SidebarItem
+                            href="/settings"
+                            icon={Settings}
+                            label="Settings"
+                        />
+                    </SidebarFooter>
+                </Sidebar>
+                {children}
+            </body>
         </html>
     );
 }
