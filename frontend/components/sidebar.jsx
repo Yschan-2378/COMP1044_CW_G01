@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Circle } from "lucide-react";
+import { Circle } from "@phosphor-icons/react/dist/ssr";
 
 export function Sidebar({ children, className = "", ...props }) {
     return (
@@ -20,11 +20,11 @@ export function SidebarHeader({ className = "", ...props }) {
             {...props}
         >
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[#0052ff]">
-                <Circle size={18} fill="currentColor" strokeWidth={0} />
+                <Circle size={18} weight="fill" />
             </div>
 
             <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap text-[18px] font-semibold opacity-0 transition-all duration-200 group-hover:ml-3 group-hover:max-w-[180px] group-hover:opacity-100">
-                Internship Portal
+                Admin Portal
             </span>
         </div>
     );
@@ -99,7 +99,7 @@ export function SidebarItem({
             )}
 
             <span className="flex h-10 w-10 shrink-0 items-center justify-center">
-                <Icon size={20} strokeWidth={2.2} />
+                <Icon size={20} weight="bold" />
             </span>
 
             <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap text-[15px] font-semibold opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-[160px] group-hover:opacity-100">

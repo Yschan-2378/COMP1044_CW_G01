@@ -9,20 +9,17 @@ import {
     SidebarGroupLabel,
     SidebarNav,
     SidebarItem,
-    SidebarItemIcon,
-    SidebarItemText,
     SidebarFooter,
 } from "@/components/sidebar";
 
 import {
-    LayoutDashboard,
-    FileText,
+    SquaresFour,
     Users,
-    Building2,
-    CheckCircle2,
-    BarChart3,
-    Settings,
-} from "lucide-react";
+    UserGear,
+    Briefcase,
+    ChartBar,
+    UserCircle,
+} from "@phosphor-icons/react/dist/ssr";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     variable: "--font-plus-jakarta-sans",
@@ -40,10 +37,10 @@ export default function RootLayout({ children }) {
             lang="en"
             className={`${plusJakartaSans.variable}  h-full antialiased`}
         >
-            <body className="min-h-full flex ">
+            <body className="h-screen overflow-hidden flex">
                 <Sidebar>
                     <SidebarHeader>
-                        <SidebarTitle>Internship Portal</SidebarTitle>
+                        <SidebarTitle>Admin Portal</SidebarTitle>
                     </SidebarHeader>
 
                     <SidebarContent>
@@ -52,14 +49,9 @@ export default function RootLayout({ children }) {
                             <SidebarNav>
                                 <SidebarItem
                                     href="/dashboard"
-                                    icon={LayoutDashboard}
+                                    icon={SquaresFour}
                                     label="Dashboard"
                                     active
-                                />
-                                <SidebarItem
-                                    href="/applications"
-                                    icon={FileText}
-                                    label="Applications"
                                 />
                                 <SidebarItem
                                     href="/students"
@@ -67,30 +59,19 @@ export default function RootLayout({ children }) {
                                     label="Students"
                                 />
                                 <SidebarItem
-                                    href="/companies"
-                                    icon={Building2}
-                                    label="Companies"
-                                />
-                            </SidebarNav>
-                        </SidebarGroup>
-
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Management</SidebarGroupLabel>
-                            <SidebarNav>
-                                <SidebarItem
-                                    href="/approvals"
-                                    icon={CheckCircle2}
-                                    label="Approvals"
+                                    href="/assessors"
+                                    icon={UserGear}
+                                    label="Assessors"
                                 />
                                 <SidebarItem
-                                    href="/reports"
-                                    icon={BarChart3}
-                                    label="Reports"
+                                    href="/internships"
+                                    icon={Briefcase}
+                                    label="Internships"
                                 />
                                 <SidebarItem
-                                    href="/settings"
-                                    icon={Settings}
-                                    label="Settings"
+                                    href="/results"
+                                    icon={ChartBar}
+                                    label="Results"
                                 />
                             </SidebarNav>
                         </SidebarGroup>
@@ -98,9 +79,9 @@ export default function RootLayout({ children }) {
 
                     <SidebarFooter>
                         <SidebarItem
-                            href="/settings"
-                            icon={Settings}
-                            label="Settings"
+                            href="/profile"
+                            icon={UserCircle}
+                            label="Profile"
                         />
                     </SidebarFooter>
                 </Sidebar>
