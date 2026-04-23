@@ -9,8 +9,32 @@ import {
     CardContent,
 } from "@/components/card";
 import Label from "@/components/label";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+    TableEmpty,
+} from "@/components/table";
 
 export default function Home() {
+    const students = [
+        {
+            id: 1,
+            name: "Alice Tan",
+            company: "Grab",
+            status: "Approved",
+        },
+        {
+            id: 2,
+            name: "John Lee",
+            company: "Shopee",
+            status: "Pending",
+        },
+    ];
+
     return (
         <div className="flex flex-col gap-4 max-w-96 mt-12 mx-auto">
             <Button>Get started</Button>
@@ -33,6 +57,30 @@ export default function Home() {
                     </div>
                 </CardContent>
             </Card>
+
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-t-0">
+                        <TableHead>Name</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                    {students.length === 0 ? (
+                        <TableEmpty colSpan={3} />
+                    ) : (
+                        students.map((student) => (
+                            <TableRow key={student.id}>
+                                <TableCell>{student.name}</TableCell>
+                                <TableCell>{student.company}</TableCell>
+                                <TableCell>{student.status}</TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 }
