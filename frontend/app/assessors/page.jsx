@@ -3,9 +3,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
-import { PencilSimple } from "@phosphor-icons/react/dist/icons/PencilSimple";
-import { Trash } from "@phosphor-icons/react/dist/icons/Trash";
-import { Eye } from "@phosphor-icons/react/dist/icons/Eye";
 import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
 import { Pulse } from "@phosphor-icons/react/dist/icons/Pulse";
@@ -17,15 +14,7 @@ import Input from "@/components/input";
 import Label from "@/components/label";
 import Dropdown from "@/components/dropdown";
 import Toggle from "@/components/toggle";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/table";
+import { DataTable } from "@/components/data-table";
 import {
     Modal,
     ModalContent,
@@ -224,7 +213,7 @@ function FormField({ label, error, children, hint }) {
             <Label className="mb-2">{label}</Label>
             {children}
             {error ? (
-                <p className="mt-1.5 text-[13px] font-semibold text-[#0052ff]">
+                <p className="mt-1.5 text-[13px] font-semibold text-[#c9182e]">
                     {error}
                 </p>
             ) : hint ? (
@@ -476,9 +465,77 @@ export default function AssessorsPage() {
     }
 
     function confirmDelete() {
+        if (deleteTarget?.assigned.length) return;
         setAssessors((prev) => prev.filter((a) => a.id !== deleteTarget.id));
         closeAll();
     }
+
+    function clearFilters() {
+        setSearch("");
+        setDeptFilter("All");
+        setRoleFilter("All");
+    }
+
+    function bulkDelete(rows, clear) {
+        const deletable = rows.filter((r) => r.assigned.length === 0);
+        const ids = new Set(deletable.map((r) => r.id));
+        setAssessors((prev) => prev.filter((a) => !ids.has(a.id)));
+        clear();
+    }
+
+    function bulkDeactivate(rows, clear) {
+        const ids = new Set(rows.map((r) => r.id));
+        setAssessors((prev) =>
+            prev.map((a) => (ids.has(a.id) ? { ...a, active: false } : a)),
+        );
+        clear();
+    }
+
+    const isFiltered =
+        search !== "" || deptFilter !== "All" || roleFilter !== "All";
+
+    const columns = [
+        {
+            key: "id",
+            header: "Assessor ID",
+            cellClassName: "font-semibold tabular-nums",
+        },
+        { key: "name", header: "Name", cellClassName: "font-semibold" },
+        { key: "email", header: "Email", cellClassName: "text-[#5b616e]" },
+        {
+            key: "department",
+            header: "Department",
+            cellClassName: "text-[#5b616e]",
+        },
+        {
+            key: "role",
+            header: "Role",
+            cell: (a) => <RoleBadge role={a.role} />,
+        },
+        {
+            key: "assigned",
+            header: "Students",
+            align: "center",
+            accessor: (a) => a.assigned.length,
+            cellClassName: "text-center tabular-nums font-semibold",
+            cell: (a) => a.assigned.length,
+        },
+        {
+            key: "active",
+            header: "Active",
+            align: "center",
+            accessor: (a) => (a.active ? 1 : 0),
+            cell: (a) => (
+                <div className="flex justify-center">
+                    <Toggle
+                        checked={a.active}
+                        onChange={() => toggleActive(a)}
+                        label={`Toggle ${a.name}`}
+                    />
+                </div>
+            ),
+        },
+    ];
 
     function toggleActive(a) {
         setAssessors((prev) =>
@@ -569,115 +626,37 @@ export default function AssessorsPage() {
 
                 {/* Table */}
                 <section className="mt-6">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Assessor ID</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Department</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="text-center">
-                                    Students
-                                </TableHead>
-                                <TableHead className="text-center">
-                                    Active
-                                </TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filtered.length === 0 ? (
-                                <TableEmpty colSpan={8}>
-                                    No assessors match your filters.
-                                </TableEmpty>
-                            ) : (
-                                filtered.map((a) => (
-                                    <TableRow
-                                        key={a.id}
-                                        className={
-                                            a.active ? "" : "opacity-60"
-                                        }
-                                    >
-                                        <TableCell className="font-semibold tabular-nums">
-                                            {a.id}
-                                        </TableCell>
-                                        <TableCell className="font-semibold">
-                                            {a.name}
-                                        </TableCell>
-                                        <TableCell className="text-[#5b616e]">
-                                            {a.email}
-                                        </TableCell>
-                                        <TableCell className="text-[#5b616e]">
-                                            {a.department}
-                                        </TableCell>
-                                        <TableCell>
-                                            <RoleBadge role={a.role} />
-                                        </TableCell>
-                                        <TableCell className="text-center tabular-nums font-semibold">
-                                            {a.assigned.length}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex justify-center">
-                                                <Toggle
-                                                    checked={a.active}
-                                                    onChange={() =>
-                                                        toggleActive(a)
-                                                    }
-                                                    label={`Toggle ${a.name}`}
-                                                />
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end gap-1">
-                                                <button
-                                                    onClick={() =>
-                                                        setViewTarget(a)
-                                                    }
-                                                    aria-label={`View students for ${a.name}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#eef0f3] hover:text-[#0052ff]"
-                                                >
-                                                    <Eye
-                                                        size={16}
-                                                        weight="bold"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        openEdit(a)
-                                                    }
-                                                    aria-label={`Edit ${a.name}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#eef0f3] hover:text-[#0052ff]"
-                                                >
-                                                    <PencilSimple
-                                                        size={16}
-                                                        weight="bold"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        setDeleteTarget(a)
-                                                    }
-                                                    aria-label={`Delete ${a.name}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#0a0b0d] hover:text-white"
-                                                >
-                                                    <Trash
-                                                        size={16}
-                                                        weight="bold"
-                                                    />
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                    <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                        Showing {filtered.length} of {assessors.length}
-                    </p>
+                    <DataTable
+                        columns={columns}
+                        rows={filtered}
+                        rowKey={(a) => a.id}
+                        inactiveRow={(a) => !a.active}
+                        emptyMessage={
+                            isFiltered
+                                ? "No assessors match your filters."
+                                : "No assessors yet."
+                        }
+                        filteredAway={isFiltered}
+                        onClearFilters={clearFilters}
+                        onRowActivate={setViewTarget}
+                        onEdit={openEdit}
+                        onDelete={setDeleteTarget}
+                        selectable
+                        bulkActions={[
+                            {
+                                label: "Deactivate",
+                                onClick: bulkDeactivate,
+                            },
+                            {
+                                label: "Delete (no students)",
+                                variant: "danger",
+                                onClick: bulkDelete,
+                            },
+                        ]}
+                        totalLabel={(shown) =>
+                            `Showing ${shown} of ${assessors.length}`
+                        }
+                    />
                 </section>
             </div>
 
@@ -845,17 +824,18 @@ export default function AssessorsPage() {
             {/* Delete Modal */}
             <Modal open={!!deleteTarget}>
                 <ModalHeader>
-                    <ModalTitle>Delete assessor?</ModalTitle>
+                    <ModalTitle>
+                        {deleteTarget?.assigned.length
+                            ? "Cannot delete assessor"
+                            : "Delete assessor?"}
+                    </ModalTitle>
                     <ModalDescription>
-                        This permanently removes{" "}
-                        <span className="font-semibold text-[#0a0b0d]">
-                            {deleteTarget?.name}
-                        </span>{" "}
-                        ({deleteTarget?.id}) and their account.
                         {deleteTarget?.assigned.length ? (
                             <>
-                                {" "}
-                                They currently have{" "}
+                                <span className="font-semibold text-[#0a0b0d]">
+                                    {deleteTarget.name}
+                                </span>{" "}
+                                has{" "}
                                 <span className="font-semibold text-[#0a0b0d]">
                                     {deleteTarget.assigned.length} assigned
                                     student
@@ -863,19 +843,42 @@ export default function AssessorsPage() {
                                         ? ""
                                         : "s"}
                                 </span>
-                                . Consider deactivating instead so existing
-                                assessment records remain intact.
+                                . Reassign their students to another assessor
+                                first, or deactivate this account to preserve
+                                assessment records.
                             </>
-                        ) : null}
+                        ) : (
+                            <>
+                                This permanently removes{" "}
+                                <span className="font-semibold text-[#0a0b0d]">
+                                    {deleteTarget?.name}
+                                </span>{" "}
+                                ({deleteTarget?.id}) and their account.
+                            </>
+                        )}
                     </ModalDescription>
                 </ModalHeader>
                 <ModalFooter>
                     <Button variant="secondary" onClick={closeAll}>
-                        Cancel
+                        {deleteTarget?.assigned.length ? "Close" : "Cancel"}
                     </Button>
-                    <Button variant="dark" onClick={confirmDelete}>
-                        Delete Permanently
-                    </Button>
+                    {deleteTarget?.assigned.length ? (
+                        <Button
+                            variant="dark"
+                            onClick={() => {
+                                toggleActive(deleteTarget);
+                                closeAll();
+                            }}
+                        >
+                            {deleteTarget.active
+                                ? "Deactivate Instead"
+                                : "Already Deactivated"}
+                        </Button>
+                    ) : (
+                        <Button variant="dark" onClick={confirmDelete}>
+                            Delete Permanently
+                        </Button>
+                    )}
                 </ModalFooter>
             </Modal>
         </main>

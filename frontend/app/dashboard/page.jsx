@@ -112,16 +112,7 @@ export default function DashboardPage() {
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
             <div className="mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-16">
-                <div className="flex items-center justify-between gap-4">
-                    <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                        Dashboard
-                    </p>
-                    <Button variant="primary">
-                        <Plus size={18} weight="bold" className="mr-2" />
-                        New Student
-                    </Button>
-                </div>
-                <section className="mt-12 grid grid-cols-1 gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:items-end">
+                <section className="grid grid-cols-1 gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:items-end">
                     <div>
                         <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
                             {heroStat.label}
@@ -155,6 +146,10 @@ export default function DashboardPage() {
                 {/* Quick Actions */}
                 <section className="mt-16">
                     <div className="flex flex-wrap gap-3">
+                        <Button variant="primary">
+                            <Plus size={18} weight="bold" className="mr-2" />
+                            New Student
+                        </Button>
                         {quickActions.map((action) => {
                             const Icon = action.icon;
                             return (

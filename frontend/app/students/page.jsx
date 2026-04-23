@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
-import { PencilSimple } from "@phosphor-icons/react/dist/icons/PencilSimple";
-import { Trash } from "@phosphor-icons/react/dist/icons/Trash";
 import { GraduationCap } from "@phosphor-icons/react/dist/icons/GraduationCap";
 import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
@@ -13,15 +11,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import Label from "@/components/label";
 import Dropdown from "@/components/dropdown";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/table";
+import { DataTable } from "@/components/data-table";
 import {
     Modal,
     ModalContent,
@@ -183,7 +173,7 @@ function FormField({ label, error, children }) {
             <Label className="mb-2">{label}</Label>
             {children}
             {error && (
-                <p className="mt-1.5 text-[13px] font-semibold text-[#0052ff]">
+                <p className="mt-1.5 text-[13px] font-semibold text-[#c9182e]">
                     {error}
                 </p>
             )}
@@ -355,6 +345,47 @@ export default function StudentsPage() {
         closeAll();
     }
 
+    function clearFilters() {
+        setSearch("");
+        setProgrammeFilter("All");
+        setStatusFilter("All");
+    }
+
+    function bulkDelete(rows, clear) {
+        const ids = new Set(rows.map((r) => r.id));
+        setStudents((prev) => prev.filter((s) => !ids.has(s.id)));
+        clear();
+    }
+
+    const isFiltered =
+        search !== "" || programmeFilter !== "All" || statusFilter !== "All";
+
+    const columns = [
+        {
+            key: "id",
+            header: "Student ID",
+            cellClassName: "font-semibold tabular-nums",
+        },
+        { key: "name", header: "Name", cellClassName: "font-semibold" },
+        {
+            key: "programme",
+            header: "Programme",
+            cellClassName: "text-[#5b616e]",
+        },
+        {
+            key: "year",
+            header: "Year",
+            align: "center",
+            cellClassName: "tabular-nums",
+        },
+        { key: "email", header: "Email", cellClassName: "text-[#5b616e]" },
+        {
+            key: "status",
+            header: "Status",
+            cell: (s) => <InternshipBadge status={s.status} />,
+        },
+    ];
+
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
             <div className="mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-16">
@@ -431,82 +462,32 @@ export default function StudentsPage() {
 
                 {/* Table */}
                 <section className="mt-6">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Student ID</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Programme</TableHead>
-                                <TableHead>Year</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filtered.length === 0 ? (
-                                <TableEmpty colSpan={7}>
-                                    No students match your filters.
-                                </TableEmpty>
-                            ) : (
-                                filtered.map((s) => (
-                                    <TableRow key={s.id}>
-                                        <TableCell className="font-semibold tabular-nums">
-                                            {s.id}
-                                        </TableCell>
-                                        <TableCell className="font-semibold">
-                                            {s.name}
-                                        </TableCell>
-                                        <TableCell className="text-[#5b616e]">
-                                            {s.programme}
-                                        </TableCell>
-                                        <TableCell className="tabular-nums">
-                                            {s.year}
-                                        </TableCell>
-                                        <TableCell className="text-[#5b616e]">
-                                            {s.email}
-                                        </TableCell>
-                                        <TableCell>
-                                            <InternshipBadge
-                                                status={s.status}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end gap-1">
-                                                <button
-                                                    onClick={() => openEdit(s)}
-                                                    aria-label={`Edit ${s.name}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#eef0f3] hover:text-[#0052ff]"
-                                                >
-                                                    <PencilSimple
-                                                        size={16}
-                                                        weight="bold"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        setDeleteTarget(s)
-                                                    }
-                                                    aria-label={`Delete ${s.name}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#0a0b0d] hover:text-white"
-                                                >
-                                                    <Trash
-                                                        size={16}
-                                                        weight="bold"
-                                                    />
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                    <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                        Showing {filtered.length} of {students.length}
-                    </p>
+                    <DataTable
+                        columns={columns}
+                        rows={filtered}
+                        rowKey={(s) => s.id}
+                        emptyMessage={
+                            isFiltered
+                                ? "No students match your filters."
+                                : "No students yet."
+                        }
+                        filteredAway={isFiltered}
+                        onClearFilters={clearFilters}
+                        onRowActivate={openEdit}
+                        onEdit={openEdit}
+                        onDelete={setDeleteTarget}
+                        selectable
+                        bulkActions={[
+                            {
+                                label: "Delete",
+                                variant: "danger",
+                                onClick: bulkDelete,
+                            },
+                        ]}
+                        totalLabel={(shown) =>
+                            `Showing ${shown} of ${students.length}`
+                        }
+                    />
                 </section>
             </div>
 

@@ -5,26 +5,15 @@ import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
 import { CalendarDots } from "@phosphor-icons/react/dist/icons/CalendarDots";
 import { CheckCircle } from "@phosphor-icons/react/dist/icons/CheckCircle";
 import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
-import { Eye } from "@phosphor-icons/react/dist/icons/Eye";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
-import { PencilSimple } from "@phosphor-icons/react/dist/icons/PencilSimple";
 import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
-import { Trash } from "@phosphor-icons/react/dist/icons/Trash";
 import { WarningCircle } from "@phosphor-icons/react/dist/icons/WarningCircle";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Label from "@/components/label";
 import Dropdown from "@/components/dropdown";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/table";
+import { DataTable } from "@/components/data-table";
 import {
     Modal,
     ModalContent,
@@ -271,7 +260,7 @@ function FormField({ label, error, hint, children }) {
             <Label className="mb-2">{label}</Label>
             {children}
             {error ? (
-                <p className="mt-1.5 text-[13px] font-semibold text-[#0052ff]">
+                <p className="mt-1.5 text-[13px] font-semibold text-[#c9182e]">
                     {error}
                 </p>
             ) : hint ? (
@@ -764,6 +753,105 @@ export default function InternshipsPage() {
         closeAll();
     }
 
+    function clearFilters() {
+        setSearch("");
+        setAssessorFilter("All");
+        setStatusFilter("All");
+    }
+
+    function bulkDelete(rows, clear) {
+        const ids = new Set(rows.map((r) => r.id));
+        setInternships((current) =>
+            current.filter((internship) => !ids.has(internship.id)),
+        );
+        clear();
+    }
+
+    function bulkMarkApproved(rows, clear) {
+        const ids = new Set(rows.map((r) => r.id));
+        setInternships((current) =>
+            current.map((internship) =>
+                ids.has(internship.id)
+                    ? { ...internship, assessmentStatus: "Approved" }
+                    : internship,
+            ),
+        );
+        clear();
+    }
+
+    const isFiltered =
+        search !== "" || assessorFilter !== "All" || statusFilter !== "All";
+
+    const columns = [
+        {
+            key: "id",
+            header: "Internship ID",
+            cellClassName: "font-semibold tabular-nums",
+        },
+        {
+            key: "student",
+            header: "Student",
+            accessor: (row) => row.student?.name || "",
+            cell: (row) => (
+                <div>
+                    <p className="font-semibold text-[#0a0b0d]">
+                        {row.student?.name || "Unknown Student"}
+                    </p>
+                    <p className="mt-1 text-[13px] text-[#5b616e]">
+                        {row.studentId}
+                    </p>
+                </div>
+            ),
+        },
+        {
+            key: "companyName",
+            header: "Company",
+            cell: (row) => (
+                <div>
+                    <p className="font-semibold text-[#0a0b0d]">
+                        {row.companyName}
+                    </p>
+                    <p className="mt-1 text-[13px] text-[#5b616e]">
+                        {row.position}
+                    </p>
+                </div>
+            ),
+        },
+        {
+            key: "assessor",
+            header: "Assessor",
+            accessor: (row) => row.assessor?.name || "",
+            cell: (row) => (
+                <span className="text-[#5b616e]">
+                    {row.assessor?.name || "Unassigned"}
+                </span>
+            ),
+        },
+        {
+            key: "startDate",
+            header: "Start Date",
+            cell: (row) => (
+                <span className="tabular-nums">
+                    {formatDate(row.startDate)}
+                </span>
+            ),
+        },
+        {
+            key: "endDate",
+            header: "End Date",
+            cell: (row) => (
+                <span className="tabular-nums">
+                    {formatDate(row.endDate)}
+                </span>
+            ),
+        },
+        {
+            key: "status",
+            header: "Status",
+            cell: (row) => <InternshipStatusBadge status={row.status} />,
+        },
+    ];
+
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
             <div className="mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-16">
@@ -849,102 +937,36 @@ export default function InternshipsPage() {
                 </section>
 
                 <section className="mt-6">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Internship ID</TableHead>
-                                <TableHead>Student</TableHead>
-                                <TableHead>Company</TableHead>
-                                <TableHead>Assessor</TableHead>
-                                <TableHead>Start Date</TableHead>
-                                <TableHead>End Date</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filtered.length === 0 ? (
-                                <TableEmpty colSpan={8}>
-                                    No internships match your filters.
-                                </TableEmpty>
-                            ) : (
-                                filtered.map((internship) => (
-                                    <TableRow key={internship.id}>
-                                        <TableCell className="font-semibold tabular-nums">
-                                            {internship.id}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <p className="font-semibold text-[#0a0b0d]">
-                                                    {internship.student?.name || "Unknown Student"}
-                                                </p>
-                                                <p className="mt-1 text-[13px] text-[#5b616e]">
-                                                    {internship.studentId}
-                                                </p>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div>
-                                                <p className="font-semibold text-[#0a0b0d]">
-                                                    {internship.companyName}
-                                                </p>
-                                                <p className="mt-1 text-[13px] text-[#5b616e]">
-                                                    {internship.position}
-                                                </p>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-[#5b616e]">
-                                            {internship.assessor?.name || "Unassigned"}
-                                        </TableCell>
-                                        <TableCell className="tabular-nums">
-                                            {formatDate(internship.startDate)}
-                                        </TableCell>
-                                        <TableCell className="tabular-nums">
-                                            {formatDate(internship.endDate)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <InternshipStatusBadge
-                                                status={internship.status}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end gap-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setViewTarget(internship)}
-                                                    aria-label={`View ${internship.id}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#eef0f3] hover:text-[#0052ff]"
-                                                >
-                                                    <Eye size={16} weight="bold" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEdit(internship)}
-                                                    aria-label={`Edit ${internship.id}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#eef0f3] hover:text-[#0052ff]"
-                                                >
-                                                    <PencilSimple size={16} weight="bold" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDeleteTarget(internship)}
-                                                    aria-label={`Delete ${internship.id}`}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#5b616e] transition-colors hover:bg-[#0a0b0d] hover:text-white"
-                                                >
-                                                    <Trash size={16} weight="bold" />
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                    <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                        Showing {filtered.length} of {internships.length}
-                    </p>
+                    <DataTable
+                        columns={columns}
+                        rows={filtered}
+                        rowKey={(r) => r.id}
+                        emptyMessage={
+                            isFiltered
+                                ? "No internships match your filters."
+                                : "No internships assigned yet."
+                        }
+                        filteredAway={isFiltered}
+                        onClearFilters={clearFilters}
+                        onRowActivate={setViewTarget}
+                        onEdit={openEdit}
+                        onDelete={setDeleteTarget}
+                        selectable
+                        bulkActions={[
+                            {
+                                label: "Mark Approved",
+                                onClick: bulkMarkApproved,
+                            },
+                            {
+                                label: "Delete",
+                                variant: "danger",
+                                onClick: bulkDelete,
+                            },
+                        ]}
+                        totalLabel={(shown) =>
+                            `Showing ${shown} of ${internships.length}`
+                        }
+                    />
                 </section>
             </div>
 
