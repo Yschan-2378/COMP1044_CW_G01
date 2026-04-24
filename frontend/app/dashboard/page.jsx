@@ -84,16 +84,12 @@ const quickActions = [
     { label: "View Results", icon: ChartBar, href: "/results" },
 ];
 
-function SupportingStat({ stat, isLast }) {
+function SupportingStat({ stat }) {
     const Icon = stat.icon;
 
     return (
-        <div
-            className={`flex items-center gap-4 px-6 py-5 ${
-                isLast ? "" : "border-b md:border-b-0 md:border-r"
-            } border-[rgba(91,97,110,0.2)]`}
-        >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#eef0f3] text-[#0a0b0d]">
+        <div className="flex items-center gap-4 rounded-[20px] bg-[#eef0f3] px-6 py-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
                 <Icon size={18} weight="bold" />
             </div>
             <div className="min-w-0">
@@ -132,12 +128,11 @@ export default function DashboardPage() {
                     </div>
                 </section>
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white md:grid-cols-4">
-                        {supportingStats.map((stat, i) => (
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        {supportingStats.map((stat) => (
                             <SupportingStat
                                 key={stat.label}
                                 stat={stat}
-                                isLast={i === supportingStats.length - 1}
                             />
                         ))}
                     </div>

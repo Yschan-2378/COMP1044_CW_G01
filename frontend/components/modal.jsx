@@ -10,11 +10,11 @@ export function Modal({ open, children, size = "md" }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-[#0a0b0d]/40" />
             <div
                 className={`relative z-10 w-full ${
                     widths[size] || widths.md
-                } rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d]`}
+                } flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d]`}
             >
                 {children}
             </div>
@@ -47,13 +47,13 @@ export function ModalDescription({ children, className = "" }) {
 }
 
 export function ModalContent({ children, className = "" }) {
-    return <div className={`px-6 pb-6 ${className}`}>{children}</div>;
+    return <div className={`min-h-0 overflow-y-auto px-6 pb-6 ${className}`}>{children}</div>;
 }
 
 export function ModalFooter({ children, className = "" }) {
     return (
         <div
-            className={`flex items-center justify-end gap-3 border-t border-[rgba(91,97,110,0.2)] px-6 py-4 ${className}`}
+            className={`flex shrink-0 items-center justify-end gap-3 border-t border-[rgba(91,97,110,0.2)] bg-white px-6 py-4 ${className}`}
         >
             {children}
         </div>

@@ -175,14 +175,10 @@ function validate(form, assessors, editingId, requirePassword) {
     return errors;
 }
 
-function StatChip({ label, value, icon: Icon, isLast }) {
+function StatChip({ label, value, icon: Icon }) {
     return (
-        <div
-            className={`flex items-center gap-4 px-6 py-5 ${
-                isLast ? "" : "border-b md:border-b-0 md:border-r"
-            } border-[rgba(91,97,110,0.2)]`}
-        >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#eef0f3] text-[#0a0b0d]">
+        <div className="flex items-center gap-4 rounded-[20px] bg-[#eef0f3] px-6 py-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
                 <Icon size={18} weight="bold" />
             </div>
             <div className="min-w-0">
@@ -395,12 +391,17 @@ export default function AssessorsPage() {
     const stats = useMemo(() => {
         const total = assessors.length;
         const active = assessors.filter((a) => a.active).length;
+        const inactive = total - active;
+        const supervisors = assessors.filter((a) => a.role === "Supervisor").length;
         const totalAssigned = assessors.reduce(
             (sum, a) => sum + a.assigned.length,
             0
         );
         const avg = total ? (totalAssigned / total).toFixed(1) : "0";
-        return { total, active, avg };
+        const busiest = [...assessors].sort(
+            (a, b) => b.assigned.length - a.assigned.length,
+        )[0];
+        return { total, active, inactive, supervisors, avg, busiest };
     }, [assessors]);
 
     function openAdd() {
@@ -571,7 +572,7 @@ export default function AssessorsPage() {
 
                 {/* Stats */}
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <StatChip
                             label="Total Assessors"
                             value={stats.total}
@@ -583,10 +584,9 @@ export default function AssessorsPage() {
                             icon={Pulse}
                         />
                         <StatChip
-                            label="Avg Students / Assessor"
-                            value={stats.avg}
+                            label="Supervisors"
+                            value={stats.supervisors}
                             icon={Users}
-                            isLast
                         />
                     </div>
                 </section>

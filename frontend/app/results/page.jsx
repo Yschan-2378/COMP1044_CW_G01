@@ -1,12 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
-import { CheckCircle } from "@phosphor-icons/react/dist/icons/CheckCircle";
-import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
 import { DownloadSimple } from "@phosphor-icons/react/dist/icons/DownloadSimple";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
-import { Trophy } from "@phosphor-icons/react/dist/icons/Trophy";
+import {
+    Bar,
+    BarChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
@@ -292,23 +296,105 @@ function StatusBadge({ status }) {
     return <span className={`${base} ${styles[status]}`}>{status}</span>;
 }
 
-function StatChip({ label, value, icon: Icon, isLast }) {
+function InsightCard({ label, value, note, tone = "light" }) {
+    const styles =
+        tone === "dark"
+            ? "border-[#0052ff] bg-[#0052ff] text-white"
+            : "border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d]";
+
     return (
-        <div
-            className={`flex items-center gap-4 px-6 py-5 ${
-                isLast ? "" : "border-b md:border-b-0 md:border-r"
-            } border-[rgba(91,97,110,0.2)]`}
-        >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#eef0f3] text-[#0a0b0d]">
-                <Icon size={18} weight="bold" />
+        <div className={`rounded-[24px] border px-6 py-5 ${styles}`}>
+            <p
+                className={`text-[12px] font-semibold uppercase tracking-[0.08em] ${
+                    tone === "dark" ? "text-white/70" : "text-[#5b616e]"
+                }`}
+            >
+                {label}
+            </p>
+            <p className="mt-3 text-[36px] font-medium leading-none tracking-[-0.03em] tabular-nums">
+                {value}
+            </p>
+            {note && (
+                <p
+                    className={`mt-3 text-[14px] leading-[1.5] ${
+                        tone === "dark" ? "text-white/70" : "text-[#5b616e]"
+                    }`}
+                >
+                    {note}
+                </p>
+            )}
+        </div>
+    );
+}
+
+function GradeDistribution({ counts, total }) {
+    const data = ["A", "B", "C", "F"].map((grade) => ({
+        grade,
+        count: counts[grade] || 0,
+    }));
+
+    return (
+        <div className="rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white px-6 py-5">
+            <div className="flex items-center justify-between gap-4">
+                <div>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                        Grade Distribution
+                    </p>
+                    <p className="mt-2 text-[18px] font-semibold text-[#0a0b0d]">
+                        Assessed cohort
+                    </p>
+                </div>
+                <span className="rounded-full bg-[#eef0f3] px-3 py-1 text-[13px] font-bold text-[#0a0b0d]">
+                    {total} results
+                </span>
             </div>
-            <div className="min-w-0">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                    {label}
-                </p>
-                <p className="mt-1 text-[28px] font-semibold leading-[1] tracking-[-0.02em] text-[#0a0b0d] tabular-nums">
-                    {value}
-                </p>
+            <div className="mt-5 h-[180px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                        data={data}
+                        margin={{ top: 8, right: 8, left: -24, bottom: 0 }}
+                    >
+                        <XAxis
+                            dataKey="grade"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                                fill: "#0a0b0d",
+                                fontSize: 14,
+                                fontWeight: 700,
+                            }}
+                        />
+                        <YAxis
+                            allowDecimals={false}
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                                fill: "#5b616e",
+                                fontSize: 13,
+                                fontWeight: 600,
+                            }}
+                        />
+                        <Tooltip
+                            cursor={{ fill: "rgba(0,82,255,0.08)" }}
+                            contentStyle={{
+                                borderRadius: 16,
+                                border: "1px solid rgba(91,97,110,0.2)",
+                                boxShadow: "0 12px 32px rgba(10,11,13,0.08)",
+                            }}
+                            formatter={(value) => [
+                                `${value} result${value === 1 ? "" : "s"}`,
+                                "Count",
+                            ]}
+                            labelFormatter={(grade) => `Grade ${grade}`}
+                        />
+                        <Bar
+                            dataKey="count"
+                            fill="#0052ff"
+                            radius={[12, 12, 0, 0]}
+                            barSize={48}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );
@@ -404,7 +490,7 @@ function BreakdownTable({ scores }) {
                     </div>
                 );
             })}
-            <div className="grid grid-cols-[minmax(0,1fr)_80px_80px_96px] items-center gap-3 bg-[#0a0b0d] px-5 py-4 text-white">
+            <div className="grid grid-cols-[minmax(0,1fr)_80px_80px_96px] items-center gap-3 bg-[#0052ff] px-5 py-4 text-white">
                 <span className="text-[13px] font-bold uppercase tracking-[0.12em]">
                     Total
                 </span>
@@ -426,6 +512,7 @@ export default function ResultsPage() {
     const [assessorFilter, setAssessorFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
     const [gradeFilter, setGradeFilter] = useState("All");
+    const [advancedOpen, setAdvancedOpen] = useState(false);
     const [viewTarget, setViewTarget] = useState(null);
 
     const enriched = useMemo(
@@ -492,6 +579,38 @@ export default function ResultsPage() {
             average: avg,
             highest,
             pending,
+        };
+    }, [enriched]);
+
+    const performance = useMemo(() => {
+        const assessed = enriched.filter((r) => r.finalScore != null);
+        const distribution = { A: 0, B: 0, C: 0, F: 0 };
+        assessed.forEach((row) => {
+            if (row.grade) distribution[row.grade] += 1;
+        });
+
+        const criterionAverages = CRITERIA.map((criterion) => {
+            const scored = assessed.filter((row) => row.scores?.[criterion.key] != null);
+            const avg = scored.length
+                ? scored.reduce((sum, row) => sum + row.scores[criterion.key], 0) /
+                  scored.length
+                : 0;
+            return { ...criterion, avg };
+        }).sort((a, b) => a.avg - b.avg);
+
+        const passRate = assessed.length
+            ? Math.round(
+                  (assessed.filter((row) => row.finalScore >= 50).length /
+                      assessed.length) *
+                      100,
+              )
+            : 0;
+
+        return {
+            distribution,
+            assessedCount: assessed.length,
+            weakestCriteria: criterionAverages.slice(0, 2),
+            passRate,
         };
     }, [enriched]);
 
@@ -598,81 +717,129 @@ export default function ResultsPage() {
                 </div>
 
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white md:grid-cols-4">
-                        <StatChip
-                            label="Total Assessed"
-                            value={stats.totalAssessed}
-                            icon={ClipboardText}
-                        />
-                        <StatChip
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <InsightCard
                             label="Average Score"
                             value={`${stats.average.toFixed(1)}%`}
-                            icon={ChartBar}
+                            note="Across submitted and approved assessments."
+                            tone="dark"
                         />
-                        <StatChip
-                            label="Highest"
-                            value={`${stats.highest.toFixed(1)}%`}
-                            icon={Trophy}
+                        <InsightCard
+                            label="Pass Rate"
+                            value={`${performance.passRate}%`}
+                            note={`${performance.assessedCount} assessed results`}
                         />
-                        <StatChip
+                        <InsightCard
                             label="Pending Review"
                             value={stats.pending}
-                            icon={CheckCircle}
-                            isLast
+                            note="Submitted or missing scores."
+                        />
+                    </div>
+                    <div className="mt-4">
+                        <GradeDistribution
+                            counts={performance.distribution}
+                            total={performance.assessedCount}
                         />
                     </div>
                 </section>
 
-                <section className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.3fr)_repeat(4,minmax(0,1fr))]">
-                    <div className="relative">
-                        <MagnifyingGlass
-                            size={18}
-                            weight="bold"
-                            className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[#5b616e]"
+                <section className="mt-4">
+                    <div className="rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white px-6 py-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="mt-2 text-[18px] font-semibold text-[#0a0b0d]">
+                                    Lowest-scoring criteria
+                                </p>
+                            </div>
+                            <span className="rounded-full bg-[#eef0f3] px-3 py-1 text-[13px] font-bold text-[#0a0b0d]">
+                                Highest {stats.highest.toFixed(1)}%
+                            </span>
+                        </div>
+                        <div className="mt-5 grid grid-cols-1 divide-y divide-[rgba(91,97,110,0.2)] md:grid-cols-2 md:divide-x md:divide-y-0">
+                            {performance.weakestCriteria.map((criterion) => (
+                                <div
+                                    key={criterion.key}
+                                    className="py-4 first:pt-0 last:pb-0 md:px-5 md:py-0 md:first:pl-0 md:last:pr-0"
+                                >
+                                    <p className="text-[15px] font-semibold text-[#0a0b0d]">
+                                        {criterion.label}
+                                    </p>
+                                    <p className="mt-2 text-[28px] font-medium leading-none tracking-[-0.02em] tabular-nums text-[#0a0b0d]">
+                                        {criterion.avg.toFixed(1)}%
+                                    </p>
+                                    <p className="mt-2 text-[13px] text-[#5b616e]">
+                                        Cohort average, weighted at {criterion.weight}%.
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="mt-10">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+                        <div className="relative">
+                            <MagnifyingGlass
+                                size={18}
+                                weight="bold"
+                                className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[#5b616e]"
+                            />
+                            <Input
+                                placeholder="Search student ID or name"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-12"
+                            />
+                        </div>
+
+                        <Dropdown
+                            value={statusFilter}
+                            onChange={setStatusFilter}
+                            options={STATUS_OPTIONS.map((s) => ({
+                                value: s,
+                                label: s === "All" ? "All Statuses" : s,
+                            }))}
                         />
-                        <Input
-                            placeholder="Search student ID or name"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-12"
+
+                        <Dropdown
+                            value={gradeFilter}
+                            onChange={setGradeFilter}
+                            options={GRADE_RANGES}
                         />
+
+                        <button
+                            type="button"
+                            onClick={() => setAdvancedOpen((open) => !open)}
+                            className="rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white px-5 py-3 text-[15px] font-semibold text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
+                        >
+                            {advancedOpen ? "Hide Filters" : "More Filters"}
+                        </button>
                     </div>
 
-                    <Dropdown
-                        value={programmeFilter}
-                        onChange={setProgrammeFilter}
-                        options={PROGRAMMES.map((p) => ({
-                            value: p,
-                            label: p === "All" ? "All Programmes" : p,
-                        }))}
-                    />
+                    {advancedOpen && (
+                        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <Dropdown
+                                value={programmeFilter}
+                                onChange={setProgrammeFilter}
+                                options={PROGRAMMES.map((p) => ({
+                                    value: p,
+                                    label: p === "All" ? "All Programmes" : p,
+                                }))}
+                            />
 
-                    <Dropdown
-                        value={assessorFilter}
-                        onChange={setAssessorFilter}
-                        options={[
-                            { value: "All", label: "All Assessors" },
-                            ...ASSESSORS.map((a) => ({
-                                value: a.id,
-                                label: a.name,
-                            })),
-                        ]}
-                    />
-
-                    <Dropdown
-                        value={statusFilter}
-                        onChange={setStatusFilter}
-                        options={STATUS_OPTIONS.map((s) => ({
-                            value: s,
-                            label: s === "All" ? "All Statuses" : s,
-                        }))}
-                    />
-
-                    <Dropdown
-                        value={gradeFilter}
-                        onChange={setGradeFilter}
-                        options={GRADE_RANGES}
-                    />
+                            <Dropdown
+                                value={assessorFilter}
+                                onChange={setAssessorFilter}
+                                options={[
+                                    { value: "All", label: "All Assessors" },
+                                    ...ASSESSORS.map((a) => ({
+                                        value: a.id,
+                                        label: a.name,
+                                    })),
+                                ]}
+                            />
+                        </div>
+                    )}
                 </section>
 
                 <section className="mt-6">
@@ -764,7 +931,7 @@ export default function ResultsPage() {
                                 </p>
                             </div>
 
-                            <div className="flex items-center justify-between gap-4 rounded-[24px] border border-[#0a0b0d] bg-[#0a0b0d] px-6 py-5 text-white">
+                            <div className="flex items-center justify-between gap-4 rounded-[24px] border border-[#0052ff] bg-[#0052ff] px-6 py-5 text-white">
                                 <div>
                                     <p className="text-[12px] font-semibold uppercase tracking-[0.12em] opacity-70">
                                         Final Grade

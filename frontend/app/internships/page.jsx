@@ -270,14 +270,10 @@ function FormField({ label, error, hint, children }) {
     );
 }
 
-function StatChip({ label, value, icon: Icon, isLast }) {
+function StatChip({ label, value, icon: Icon }) {
     return (
-        <div
-            className={`flex items-center gap-4 px-6 py-5 ${
-                isLast ? "" : "border-b md:border-b-0 md:border-r"
-            } border-[rgba(91,97,110,0.2)]`}
-        >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#eef0f3] text-[#0a0b0d]">
+        <div className="flex items-center gap-4 rounded-[20px] bg-[#eef0f3] px-6 py-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
                 <Icon size={18} weight="bold" />
             </div>
             <div className="min-w-0">
@@ -609,6 +605,7 @@ export default function InternshipsPage() {
     const [editTarget, setEditTarget] = useState(null);
     const [viewTarget, setViewTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [undoDelete, setUndoDelete] = useState(null);
 
     const [form, setForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
@@ -662,8 +659,11 @@ export default function InternshipsPage() {
         const completed = enrichedInternships.filter(
             (internship) => internship.status === "Completed",
         ).length;
+        const nextEnding = [...enrichedInternships]
+            .filter((internship) => internship.status === "Ongoing")
+            .sort((a, b) => a.endDate.localeCompare(b.endDate))[0];
 
-        return { total, ongoing, pending, completed };
+        return { total, ongoing, pending, completed, nextEnding };
     }, [internships, enrichedInternships]);
 
     function closeAll() {
@@ -747,6 +747,7 @@ export default function InternshipsPage() {
     }
 
     function confirmDelete() {
+        setUndoDelete(deleteTarget);
         setInternships((current) =>
             current.filter((internship) => internship.id !== deleteTarget.id),
         );
@@ -761,10 +762,19 @@ export default function InternshipsPage() {
 
     function bulkDelete(rows, clear) {
         const ids = new Set(rows.map((r) => r.id));
+        setUndoDelete({ bulk: rows });
         setInternships((current) =>
             current.filter((internship) => !ids.has(internship.id)),
         );
         clear();
+    }
+
+    function restoreDeleted() {
+        if (!undoDelete) return;
+        setInternships((current) =>
+            undoDelete.bulk ? [...current, ...undoDelete.bulk] : [...current, undoDelete],
+        );
+        setUndoDelete(null);
     }
 
     function bulkMarkApproved(rows, clear) {
@@ -871,7 +881,7 @@ export default function InternshipsPage() {
                 </div>
 
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white md:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                         <StatChip
                             label="Total Internships"
                             value={stats.total}
@@ -891,10 +901,37 @@ export default function InternshipsPage() {
                             label="Completed"
                             value={stats.completed}
                             icon={CheckCircle}
-                            isLast
                         />
+                        <div className="rounded-[20px] border border-[rgba(91,97,110,0.2)] bg-white px-6 py-5 md:col-span-2 xl:col-span-4">
+                            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                                Next Checkpoint
+                            </p>
+                            <p className="mt-2 text-[18px] font-semibold text-[#0a0b0d]">
+                                {stats.nextEnding?.student?.name || "No active placement"}
+                            </p>
+                            <p className="mt-2 text-[14px] leading-[1.5] text-[#5b616e]">
+                                {stats.nextEnding
+                                    ? `${stats.nextEnding.companyName} ends ${formatDate(stats.nextEnding.endDate)}.`
+                                    : "All current placements are completed or awaiting review."}
+                            </p>
+                        </div>
                     </div>
                 </section>
+
+                {undoDelete && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[#0a0b0d] bg-white px-5 py-3">
+                        <p className="text-[14px] font-semibold text-[#0a0b0d]">
+                            Deleted {undoDelete.bulk ? `${undoDelete.bulk.length} internships` : undoDelete.id}.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={restoreDeleted}
+                            className="rounded-full bg-[#0a0b0d] px-4 py-2 text-[13px] font-semibold text-white"
+                        >
+                            Undo
+                        </button>
+                    </div>
+                )}
 
                 <section className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_240px_240px]">
                     <div className="relative">

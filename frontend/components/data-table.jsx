@@ -177,7 +177,7 @@ export function DataTable({
     return (
         <div className="space-y-3">
             {selectable && selectedValid.size > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[#0a0b0d] bg-[#0a0b0d] px-5 py-3 text-white">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[#0052ff] bg-[#0052ff] px-5 py-3 text-white">
                     <p className="text-[14px] font-semibold tabular-nums">
                         {selectedValid.size} selected
                     </p>
@@ -229,7 +229,7 @@ export function DataTable({
                                                     el.indeterminate = someVisibleSelected;
                                             }}
                                             onChange={toggleAllVisible}
-                                            className="h-4 w-4 cursor-pointer accent-[#0a0b0d]"
+                                            className="h-4 w-4 cursor-pointer accent-[#0052ff]"
                                         />
                                     </th>
                                 )}
@@ -341,7 +341,7 @@ export function DataTable({
                                                         checked={isSelected}
                                                         onChange={() => toggleSelect(id)}
                                                         onClick={(e) => e.stopPropagation()}
-                                                        className="h-4 w-4 cursor-pointer accent-[#0a0b0d]"
+                                                        className="h-4 w-4 cursor-pointer accent-[#0052ff]"
                                                     />
                                                 </td>
                                             )}
@@ -445,10 +445,6 @@ export function DataTable({
                 )}
             </div>
 
-            <p className="text-[12px] text-[#5b616e]">
-                Tip: ↑↓ to move · Enter to view · E to edit · Del to delete
-                {selectable ? " · X to select · Esc to clear" : ""}
-            </p>
         </div>
     );
 }

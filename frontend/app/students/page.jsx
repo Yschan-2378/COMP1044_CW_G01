@@ -145,14 +145,10 @@ function InternshipBadge({ status }) {
     );
 }
 
-function StatChip({ label, value, icon: Icon, isLast }) {
+function StatChip({ label, value, icon: Icon }) {
     return (
-        <div
-            className={`flex items-center gap-4 px-6 py-5 ${
-                isLast ? "" : "border-b md:border-b-0 md:border-r"
-            } border-[rgba(91,97,110,0.2)]`}
-        >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#eef0f3] text-[#0a0b0d]">
+        <div className="flex items-center gap-4 rounded-[20px] bg-[#eef0f3] px-6 py-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
                 <Icon size={18} weight="bold" />
             </div>
             <div className="min-w-0">
@@ -260,6 +256,7 @@ export default function StudentsPage() {
     const [addOpen, setAddOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [undoDelete, setUndoDelete] = useState(null);
 
     const [form, setForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
@@ -284,17 +281,21 @@ export default function StudentsPage() {
     const stats = useMemo(() => {
         const byProg = {};
         let activeCount = 0;
+        let pendingCount = 0;
         for (const s of students) {
             byProg[s.programme] = (byProg[s.programme] || 0) + 1;
             if (s.status === "Active") activeCount += 1;
+            if (s.status === "Pending") pendingCount += 1;
         }
         const topProg = Object.entries(byProg).sort((a, b) => b[1] - a[1])[0];
         return {
             total: students.length,
             topProgramme: topProg
                 ? `${topProg[0].split(" ")[0]} (${topProg[1]})`
-                : "—",
+                : "-",
             activeInternship: activeCount,
+            pending: pendingCount,
+            unplaced: students.filter((s) => s.status === "None").length,
         };
     }, [students]);
 
@@ -341,6 +342,7 @@ export default function StudentsPage() {
     }
 
     function confirmDelete() {
+        setUndoDelete(deleteTarget);
         setStudents((prev) => prev.filter((s) => s.id !== deleteTarget.id));
         closeAll();
     }
@@ -353,8 +355,17 @@ export default function StudentsPage() {
 
     function bulkDelete(rows, clear) {
         const ids = new Set(rows.map((r) => r.id));
+        setUndoDelete({ bulk: rows });
         setStudents((prev) => prev.filter((s) => !ids.has(s.id)));
         clear();
+    }
+
+    function restoreDeleted() {
+        if (!undoDelete) return;
+        setStudents((prev) =>
+            undoDelete.bulk ? [...prev, ...undoDelete.bulk] : [...prev, undoDelete],
+        );
+        setUndoDelete(null);
     }
 
     const isFiltered =
@@ -407,7 +418,7 @@ export default function StudentsPage() {
 
                 {/* Stats */}
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 overflow-hidden rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <StatChip
                             label="Total Students"
                             value={stats.total}
@@ -422,10 +433,24 @@ export default function StudentsPage() {
                             label="Active Internships"
                             value={stats.activeInternship}
                             icon={Briefcase}
-                            isLast
                         />
                     </div>
                 </section>
+
+                {undoDelete && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-[#0a0b0d] bg-white px-5 py-3">
+                        <p className="text-[14px] font-semibold text-[#0a0b0d]">
+                            Deleted {undoDelete.bulk ? `${undoDelete.bulk.length} students` : undoDelete.name}.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={restoreDeleted}
+                            className="rounded-full bg-[#0a0b0d] px-4 py-2 text-[13px] font-semibold text-white"
+                        >
+                            Undo
+                        </button>
+                    </div>
+                )}
 
                 {/* Filter bar */}
                 <section className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_220px_180px]">
