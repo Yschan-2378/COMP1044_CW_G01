@@ -13,7 +13,7 @@ CREATE TABLE Students (
 
 CREATE TABLE Internships (
     internship_id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id VARCHAR(20) NOT NULL,
+    student_id VARCHAR(20) UNIQUE NOT NULL, 
     assessor_id INT NOT NULL,
     company_name VARCHAR(150) NOT NULL,
     FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
@@ -22,7 +22,7 @@ CREATE TABLE Internships (
 
 CREATE TABLE Assessments (
     assessment_id INT AUTO_INCREMENT PRIMARY KEY,
-    internship_id INT NOT NULL,
+    internship_id INT UNIQUE NOT NULL, 
     task_mark DECIMAL(5,2),
     safety_mark DECIMAL(5,2),
     knowledge_mark DECIMAL(5,2),
@@ -36,6 +36,6 @@ CREATE TABLE Assessments (
     FOREIGN KEY (internship_id) REFERENCES Internships(internship_id) ON DELETE CASCADE
 );
 
--- Insert your login account (Password is admin123)
+-- password "admin123"
 INSERT INTO Users (username, password_hash, role) 
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin');
+VALUES ('admin', '$2a$12$UP2FDaHvqrSQHW76zsZHWeqzc09VuR.euQbFSi41Wt..pMmRsSgyS', 'Admin');
