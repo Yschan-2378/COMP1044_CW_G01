@@ -156,7 +156,10 @@ export default function GradeStudentPage() {
             setMessage(`Saved. Final score: ${Number(result.final_calculated_score).toFixed(2)}%.`);
         } catch (err) {
             if (err.status === 401) router.push("/login");
-            else setMessage(err.message || "Unable to save assessment.");
+            else {
+                if (err.fields) setErrors(err.fields);
+                setMessage(err.message || "Unable to save assessment.");
+            }
         } finally {
             setSaving(false);
         }
@@ -243,6 +246,11 @@ export default function GradeStudentPage() {
                                         }
                                         placeholder="Add feedback to justify the marks."
                                     />
+                                    {errors.qualitative_comments && (
+                                        <p className="mt-1.5 text-[13px] font-semibold text-[#c9182e]">
+                                            {errors.qualitative_comments}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[24px] bg-[#0052ff] px-6 py-5 text-white">

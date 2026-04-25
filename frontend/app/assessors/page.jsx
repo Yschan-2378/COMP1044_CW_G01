@@ -224,6 +224,7 @@ export default function AssessorsPage() {
             await refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -246,6 +247,7 @@ export default function AssessorsPage() {
             await refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -263,6 +265,7 @@ export default function AssessorsPage() {
             await refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -289,6 +292,7 @@ export default function AssessorsPage() {
             });
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);

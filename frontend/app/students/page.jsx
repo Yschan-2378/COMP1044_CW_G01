@@ -204,6 +204,7 @@ export default function StudentsPage() {
             await refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -227,6 +228,7 @@ export default function StudentsPage() {
             await refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);

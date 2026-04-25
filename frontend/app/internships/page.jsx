@@ -8,6 +8,7 @@ import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
 
 import Button from "@/components/button";
+import Badge from "@/components/badge";
 import Input from "@/components/input";
 import Label from "@/components/label";
 import Dropdown from "@/components/dropdown";
@@ -206,6 +207,7 @@ export default function InternshipsPage() {
             await internshipsApi.refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -230,6 +232,7 @@ export default function InternshipsPage() {
             await internshipsApi.refetch();
             closeAll();
         } catch (err) {
+            if (err.fields) setErrors(err.fields);
             setSubmitError(err.message);
         } finally {
             setSubmitting(false);
@@ -282,6 +285,11 @@ export default function InternshipsPage() {
             key: "assessor_username",
             header: "Assessor",
             cellClassName: "text-[#5b616e]",
+        },
+        {
+            key: "status",
+            header: "Status",
+            cell: (row) => <Badge status={row.assessment_id ? "Graded" : "Pending"} />,
         },
     ];
 
