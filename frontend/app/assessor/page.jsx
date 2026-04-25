@@ -126,7 +126,7 @@ export default function AssessorDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-[24px] bg-[#0a0b0d] px-6 py-5 text-white">
+                    <div className="flex min-h-[354px] flex-col rounded-[24px] bg-[#0052ff] px-6 py-5 text-white">
                         <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-white/60">
                             Queue Summary
                         </p>
@@ -136,7 +136,7 @@ export default function AssessorDashboardPage() {
                         <p className="mt-3 text-[15px] leading-[1.5] text-white/70">
                             of assigned internships have submitted marks.
                         </p>
-                        <div className="mt-8 grid grid-cols-2 gap-3">
+                        <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
                             <div className="rounded-[16px] bg-white/10 px-4 py-3">
                                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/55">
                                     Graded

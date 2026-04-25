@@ -5,7 +5,6 @@ import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
 import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
-import { Copy } from "@phosphor-icons/react/dist/icons/Copy";
 import { ArrowsClockwise } from "@phosphor-icons/react/dist/icons/ArrowsClockwise";
 
 import Button from "@/components/button";
@@ -94,40 +93,24 @@ function FormField({ label, error, hint, children }) {
 }
 
 function PasswordField({ value, onChange, error, onGenerate }) {
-    async function copy() {
-        if (!value) return;
-        await navigator.clipboard?.writeText(value).catch(() => {});
-    }
-
     return (
-        <FormField
-            label="Temporary Password"
-            error={error}
-            hint="This becomes the password_hash value after the PHP backend hashes it."
-        >
+        <FormField label="Password" error={error}>
             <div className="flex gap-2">
                 <Input
                     type="text"
                     placeholder="Generate or type a password"
                     value={value}
                     onChange={onChange}
-                    className="flex-1 font-mono"
+                    className="flex-1"
                 />
-                <button
-                    type="button"
-                    onClick={copy}
-                    aria-label="Copy password"
-                    className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
-                >
-                    <Copy size={16} weight="bold" />
-                </button>
                 <button
                     type="button"
                     onClick={onGenerate}
                     aria-label="Generate password"
-                    className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] bg-[#0a0b0d] text-white transition-colors hover:bg-[#282b31]"
+                    className="flex h-[50px] shrink-0 items-center justify-center gap-2 rounded-[24px] border border-[#eef0f3] bg-[#eef0f3] px-5 text-[14px] font-semibold text-[#0a0b0d] transition-colors hover:bg-[#dfe3e8]"
                 >
                     <ArrowsClockwise size={16} weight="bold" />
+                    Generate
                 </button>
             </div>
         </FormField>
@@ -183,6 +166,10 @@ export default function AssessorsPage() {
             query ? assessor.username.toLowerCase().includes(query) : true,
         );
     }, [assessors, search]);
+    const assignedInternships = assessors.reduce(
+        (total, assessor) => total + Number(assessor.assigned_count || 0),
+        0,
+    );
 
     function openAdd() {
         setForm({ ...EMPTY_FORM, password: generatePassword() });
@@ -331,7 +318,7 @@ export default function AssessorsPage() {
                 <section className="mt-12">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <StatChip label="Assessor Accounts" value={assessors.length} icon={UserGear} />
-                        <StatChip label="Authorized Role" value="Assessor" icon={Users} />
+                        <StatChip label="Assigned Internships" value={assignedInternships} icon={Users} />
                     </div>
                 </section>
 

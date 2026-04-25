@@ -3,6 +3,15 @@
 import { useMemo, useState } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/dist/icons/DownloadSimple";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
@@ -31,6 +40,35 @@ const CRITERIA = [
 function formatScore(value) {
     if (value == null) return "-";
     return `${Number(value).toFixed(2)}%`;
+}
+
+function asNumber(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function getScoreBand(score) {
+    if (score < 50) return "0-49";
+    if (score < 60) return "50-59";
+    if (score < 70) return "60-69";
+    if (score < 80) return "70-79";
+    return "80-100";
+}
+
+function ChartTooltip({ active, payload, label }) {
+    if (!active || !payload?.length) return null;
+
+    return (
+        <div className="rounded-[14px] border border-[rgba(91,97,110,0.18)] bg-white px-3 py-2 text-[13px] shadow-sm">
+            {label ? <p className="font-semibold text-[#0a0b0d]">{label}</p> : null}
+            {payload.map((item) => (
+                <p key={item.dataKey || item.name} className="mt-1 text-[#5b616e]">
+                    <span className="font-semibold text-[#0a0b0d]">{item.name}: </span>
+                    {item.value}
+                </p>
+            ))}
+        </div>
+    );
 }
 
 function downloadCsv(rows) {
@@ -132,6 +170,12 @@ export default function AssessorResultsPage() {
                 row.company_name.toLowerCase().includes(query),
         );
     }, [results, search]);
+    const scoreDistribution = ["0-49", "50-59", "60-69", "70-79", "80-100"].map((band) => ({
+        band,
+        students: filtered.filter(
+            (row) => getScoreBand(asNumber(row.final_calculated_score)) === band,
+        ).length,
+    }));
 
     const columns = [
         { key: "student_id", header: "Student ID", cellClassName: "font-semibold tabular-nums" },
@@ -174,6 +218,47 @@ export default function AssessorResultsPage() {
                 </div>
 
                 <section className="mt-12">
+                    <div className="rounded-[24px] border border-[rgba(91,97,110,0.18)] bg-transparent px-5 py-5">
+                        <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                            Score Distribution
+                        </h2>
+                        <div className="mt-5 h-[280px]">
+                            {filtered.length ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={scoreDistribution} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                                        <CartesianGrid stroke="rgba(91,97,110,0.18)" vertical={false} />
+                                        <XAxis
+                                            dataKey="band"
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tick={{ fill: "#5b616e", fontSize: 12, fontWeight: 600 }}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tick={{ fill: "#5b616e", fontSize: 12, fontWeight: 600 }}
+                                        />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Bar
+                                            dataKey="students"
+                                            name="Students"
+                                            fill="#0052ff"
+                                            radius={[8, 8, 0, 0]}
+                                            maxBarSize={64}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex h-full items-center justify-center rounded-[18px] border border-dashed border-[rgba(91,97,110,0.28)] bg-white text-[14px] font-semibold text-[#5b616e]">
+                                    No results to chart yet.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="mt-6">
                     <div className="relative">
                         <MagnifyingGlass
                             size={18}

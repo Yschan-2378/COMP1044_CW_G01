@@ -111,6 +111,7 @@ function StudentForm({ form, setForm, errors, idDisabled }) {
                             setForm((current) => ({ ...current, programme }))
                         }
                         options={PROGRAMMES}
+                        expandOnOpen
                     />
                 </FormField>
             </div>

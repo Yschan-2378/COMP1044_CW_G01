@@ -91,6 +91,7 @@ function InternshipForm({ form, setForm, errors, students, assessors }) {
                         label: `${student.student_id} - ${student.student_name}`,
                     }))}
                     placeholder="Select student"
+                    expandOnOpen
                 />
             </FormField>
             <FormField label="Assessor" error={errors.assessor_id}>
@@ -104,6 +105,7 @@ function InternshipForm({ form, setForm, errors, students, assessors }) {
                         label: assessor.username,
                     }))}
                     placeholder="Select assessor"
+                    expandOnOpen
                 />
             </FormField>
             <div className="sm:col-span-2">

@@ -11,6 +11,7 @@ function Dropdown({
     placeholder = "Select",
     className = "",
     align = "left",
+    expandOnOpen = false,
 }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
@@ -73,8 +74,10 @@ function Dropdown({
             {open && (
                 <div
                     role="listbox"
-                    className={`absolute z-20 mt-2 min-w-full overflow-hidden rounded-[16px] border border-[rgba(91,97,110,0.2)] bg-white py-1 shadow-[0_12px_32px_rgba(10,11,13,0.08)] ${
-                        align === "right" ? "right-0" : "left-0"
+                    className={`z-20 mt-2 min-w-full overflow-hidden rounded-[16px] border border-[rgba(91,97,110,0.2)] bg-white py-1 shadow-[0_12px_32px_rgba(10,11,13,0.08)] ${
+                        expandOnOpen
+                            ? "relative"
+                            : `absolute ${align === "right" ? "right-0" : "left-0"}`
                     }`}
                 >
                     {normalized.map((opt) => {
