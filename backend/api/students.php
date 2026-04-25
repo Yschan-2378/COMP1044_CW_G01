@@ -43,7 +43,7 @@ if ($method === 'POST') {
     $data = read_json_body();
     require_fields($data, ['student_id', 'student_name', 'programme']);
 
-    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $student_id = validate_string($data['student_id'], 'student_id', 8, 8, '/^20\d{6}$/');
     $student_name = validate_string($data['student_name'], 'student_name', 100, 2);
     $programme = validate_string($data['programme'], 'programme', 100, 2);
 
@@ -61,7 +61,7 @@ if ($method === 'PUT') {
     $data = read_json_body();
     require_fields($data, ['student_id', 'student_name', 'programme']);
 
-    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $student_id = validate_string($data['student_id'], 'student_id', 8, 8, '/^20\d{6}$/');
     $student_name = validate_string($data['student_name'], 'student_name', 100, 2);
     $programme = validate_string($data['programme'], 'programme', 100, 2);
 
@@ -85,9 +85,9 @@ if ($method === 'DELETE') {
     $student_id = validate_string(
         $data['student_id'] ?? $_GET['student_id'] ?? '',
         'student_id',
-        20,
-        4,
-        '/^[A-Za-z0-9-]+$/'
+        8,
+        8,
+        '/^20\d{6}$/'
     );
 
     $stmt = $pdo->prepare('DELETE FROM Students WHERE student_id = ?');

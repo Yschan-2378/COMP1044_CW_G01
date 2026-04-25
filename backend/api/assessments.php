@@ -89,8 +89,8 @@ if ($method === 'POST' || $method === 'PUT') {
         'INSERT INTO Assessments (
             internship_id, task_mark, safety_mark, knowledge_mark,
             report_mark, clarity_mark, learning_mark, project_mgt_mark,
-            time_mgt_mark, qualitative_comments, final_calculated_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            time_mgt_mark, qualitative_comments
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             task_mark = VALUES(task_mark),
             safety_mark = VALUES(safety_mark),
@@ -100,8 +100,7 @@ if ($method === 'POST' || $method === 'PUT') {
             learning_mark = VALUES(learning_mark),
             project_mgt_mark = VALUES(project_mgt_mark),
             time_mgt_mark = VALUES(time_mgt_mark),
-            qualitative_comments = VALUES(qualitative_comments),
-            final_calculated_score = VALUES(final_calculated_score)'
+            qualitative_comments = VALUES(qualitative_comments)'
     );
 
     $stmt->execute([
@@ -115,7 +114,6 @@ if ($method === 'POST' || $method === 'PUT') {
         $marks['project_mgt_mark'],
         $marks['time_mgt_mark'],
         $comments,
-        $final_score,
     ]);
 
     json_response([

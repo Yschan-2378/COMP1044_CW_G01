@@ -23,16 +23,28 @@ CREATE TABLE Internships (
 CREATE TABLE Assessments (
     assessment_id INT AUTO_INCREMENT PRIMARY KEY,
     internship_id INT UNIQUE NOT NULL, 
-    task_mark DECIMAL(5,2),
-    safety_mark DECIMAL(5,2),
-    knowledge_mark DECIMAL(5,2),
-    report_mark DECIMAL(5,2),
-    clarity_mark DECIMAL(5,2),
-    learning_mark DECIMAL(5,2),
-    project_mgt_mark DECIMAL(5,2),
-    time_mgt_mark DECIMAL(5,2),
+    task_mark DECIMAL(5,2) NOT NULL,
+    safety_mark DECIMAL(5,2) NOT NULL,
+    knowledge_mark DECIMAL(5,2) NOT NULL,
+    report_mark DECIMAL(5,2) NOT NULL,
+    clarity_mark DECIMAL(5,2) NOT NULL,
+    learning_mark DECIMAL(5,2) NOT NULL,
+    project_mgt_mark DECIMAL(5,2) NOT NULL,
+    time_mgt_mark DECIMAL(5,2) NOT NULL,
     qualitative_comments TEXT,
-    final_calculated_score DECIMAL(5,2),
+    final_calculated_score DECIMAL(5,2) GENERATED ALWAYS AS (
+        ROUND(
+            (task_mark * 0.10)
+            + (safety_mark * 0.10)
+            + (knowledge_mark * 0.10)
+            + (report_mark * 0.15)
+            + (clarity_mark * 0.10)
+            + (learning_mark * 0.15)
+            + (project_mgt_mark * 0.15)
+            + (time_mgt_mark * 0.15),
+            2
+        )
+    ) STORED,
     FOREIGN KEY (internship_id) REFERENCES Internships(internship_id) ON DELETE CASCADE
 );
 
@@ -69,14 +81,17 @@ INSERT INTO Internships (student_id, assessor_id, company_name) VALUES
     ('20217764', 2, 'Cyberdyne'),
     ('20234120', 3, 'Massive Dynamic');
 
--- Final score = average of the 8 marks. Seed a mix of completed and in-progress assessments.
+-- Final score uses the official assessment weightages:
+-- task 10%, safety 10%, knowledge 10%, report 15%, clarity 10%,
+-- learning 15%, project management 15%, time management 15%.
+-- Seed a mix of completed and in-progress assessments.
 INSERT INTO Assessments
     (internship_id, task_mark, safety_mark, knowledge_mark, report_mark,
      clarity_mark, learning_mark, project_mgt_mark, time_mgt_mark,
-     qualitative_comments, final_calculated_score)
+     qualitative_comments)
 VALUES
-    (1, 85, 90, 80, 78, 82, 88, 84, 86, 'Strong technical contribution and good team integration.', 84.13),
-    (2, 72, 75, 70, 68, 74, 76, 71, 73, 'Solid work, room to grow on documentation.',                72.38),
-    (3, 91, 88, 93, 90, 89, 92, 87, 90, 'Outstanding analytical work on the data pipeline.',         90.00),
-    (5, 78, 82, 76, 74, 80, 79, 77, 81, 'Reliable contributor on the security audit team.',          78.38),
-    (7, 88, 85, 87, 86, 90, 88, 84, 89, 'Excellent UX research and stakeholder communication.',      87.13);
+    (1, 85, 90, 80, 78, 82, 88, 84, 86, 'Strong technical contribution and good team integration.'),
+    (2, 72, 75, 70, 68, 74, 76, 71, 73, 'Solid work, room to grow on documentation.'),
+    (3, 91, 88, 93, 90, 89, 92, 87, 90, 'Outstanding analytical work on the data pipeline.'),
+    (5, 78, 82, 76, 74, 80, 79, 77, 81, 'Reliable contributor on the security audit team.'),
+    (7, 88, 85, 87, 86, 90, 88, 84, 89, 'Excellent UX research and stakeholder communication.');

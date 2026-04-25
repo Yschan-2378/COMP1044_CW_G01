@@ -261,13 +261,24 @@ export default function AssessorsPage() {
 
     function openReset(assessor) {
         setResetTarget(assessor);
-        setResetPassword(generatePassword());
+        setResetPassword("");
+        setErrors({});
         setSubmitError(null);
     }
 
     async function applyReset() {
+        if (!resetPassword.trim()) {
+            setErrors({ password: "Required" });
+            return;
+        }
+        if (resetPassword.trim().length < 8) {
+            setErrors({ password: "Min 8 characters" });
+            return;
+        }
+
         setSubmitting(true);
         setSubmitError(null);
+        setErrors({});
         try {
             await apiFetch("/assessors.php", {
                 method: "PUT",
@@ -428,9 +439,14 @@ export default function AssessorsPage() {
                     </ModalDescription>
                 </ModalHeader>
                 <ModalContent>
-                    <div className="rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-[#eef0f3] px-5 py-3 font-mono text-[16px] text-[#0a0b0d] break-all">
-                        {resetPassword}
-                    </div>
+                    <FormField label="Password" error={errors.password}>
+                        <Input
+                            type="text"
+                            value={resetPassword}
+                            onChange={(event) => setResetPassword(event.target.value)}
+                            placeholder="Generate or type a password"
+                        />
+                    </FormField>
                     {submitError && (
                         <p className="mt-3 text-[13px] font-semibold text-[#c9182e]">{submitError}</p>
                     )}
