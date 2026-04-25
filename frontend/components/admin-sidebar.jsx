@@ -11,11 +11,13 @@ import {
     SidebarHeader,
     SidebarTitle,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupLabel,
     SidebarNav,
     SidebarItem,
 } from "./sidebar";
+import SidebarLogout from "./sidebar-logout";
 
 function AdminSidebar() {
     return (
@@ -56,6 +58,10 @@ function AdminSidebar() {
                     </SidebarNav>
                 </SidebarGroup>
             </SidebarContent>
+
+            <SidebarFooter>
+                <SidebarLogout />
+            </SidebarFooter>
         </Sidebar>
     );
 }

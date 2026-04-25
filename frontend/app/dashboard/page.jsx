@@ -6,6 +6,18 @@ import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
 import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
 import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 import Button from "@/components/button";
 import {
@@ -38,6 +50,53 @@ function StatChip({ stat }) {
     );
 }
 
+function ChartPanel({ title, children }) {
+    return (
+        <div className="rounded-[24px] border border-[rgba(91,97,110,0.18)] bg-transparent px-5 py-5">
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                        {title}
+                    </h2>
+                </div>
+            </div>
+            <div className="mt-5 h-[280px]">{children}</div>
+        </div>
+    );
+}
+
+function EmptyChart({ message }) {
+    return (
+        <div className="flex h-full items-center justify-center rounded-[18px] border border-dashed border-[rgba(91,97,110,0.28)] bg-white text-[14px] font-semibold text-[#5b616e]">
+            {message}
+        </div>
+    );
+}
+
+function ChartTooltip({ active, payload, label }) {
+    if (!active || !payload?.length) return null;
+
+    return (
+        <div className="rounded-[14px] border border-[rgba(91,97,110,0.18)] bg-white px-3 py-2 text-[13px] shadow-sm">
+            {label ? <p className="font-semibold text-[#0a0b0d]">{label}</p> : null}
+            {payload.map((item) => (
+                <p key={item.dataKey || item.name} className="mt-1 text-[#5b616e]">
+                    <span className="font-semibold text-[#0a0b0d]">{item.name}: </span>
+                    {item.value}
+                </p>
+            ))}
+        </div>
+    );
+}
+
+function getScoreBand(score) {
+    if (score < 50) return "0-49";
+    if (score < 60) return "50-59";
+    if (score < 70) return "60-69";
+    if (score < 80) return "70-79";
+    return "80-100";
+}
+
 export default function DashboardPage() {
     const studentsApi = useApi("/students.php");
     const assessorsApi = useApi("/assessors.php");
@@ -49,6 +108,7 @@ export default function DashboardPage() {
     const internships = internshipsApi.data?.internships ?? [];
     const results = resultsApi.data?.results ?? [];
     const assessmentCount = results.filter((row) => row.assessment_id != null).length;
+    const pendingCount = Math.max(internships.length - assessmentCount, 0);
 
     const stats = [
         { label: "Students", value: students.length, icon: Users },
@@ -58,6 +118,18 @@ export default function DashboardPage() {
     ];
 
     const recentAssignments = internships.slice(0, 5);
+    const statusData = [
+        { name: "Graded", value: assessmentCount, color: "#0052ff" },
+        { name: "Pending", value: pendingCount, color: "#a8b0bd" },
+    ].filter((item) => item.value > 0);
+
+    const completedResults = results.filter((row) => row.assessment_id != null);
+    const scoreDistribution = ["0-49", "50-59", "60-69", "70-79", "80-100"].map((band) => ({
+        band,
+        students: completedResults.filter(
+            (row) => getScoreBand(Number(row.final_calculated_score || 0)) === band,
+        ).length,
+    }));
 
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
@@ -103,6 +175,70 @@ export default function DashboardPage() {
                             View Results
                         </Button>
                     </div>
+                </section>
+
+                <section className="mt-16 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,4fr)_minmax(0,5fr)]">
+                    <ChartPanel
+                        title="Assessment Status"
+                    >
+                        {statusData.length ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={statusData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={72}
+                                        outerRadius={104}
+                                        paddingAngle={4}
+                                    >
+                                        {statusData.map((entry) => (
+                                            <Cell key={entry.name} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <EmptyChart message="No internships to chart yet." />
+                        )}
+                    </ChartPanel>
+
+                    <ChartPanel
+                        title="Score Distribution"
+                    >
+                        {completedResults.length ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={scoreDistribution} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                                    <CartesianGrid stroke="rgba(91,97,110,0.18)" vertical={false} />
+                                    <XAxis
+                                        dataKey="band"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={{ fill: "#5b616e", fontSize: 12, fontWeight: 600 }}
+                                    />
+                                    <YAxis
+                                        allowDecimals={false}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={{ fill: "#5b616e", fontSize: 12, fontWeight: 600 }}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} />
+                                    <Bar
+                                        dataKey="students"
+                                        name="Students"
+                                        fill="#0052ff"
+                                        radius={[8, 8, 0, 0]}
+                                        maxBarSize={64}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <EmptyChart message="No graded results to chart yet." />
+                        )}
+                    </ChartPanel>
                 </section>
 
                 <section className="mt-16">

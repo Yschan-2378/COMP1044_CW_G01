@@ -4,6 +4,7 @@ import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
 import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
 import { ArrowRight } from "@phosphor-icons/react/dist/icons/ArrowRight";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import Button from "@/components/button";
 import Badge from "@/components/badge";
@@ -35,11 +36,30 @@ function StatChip({ label, value, icon: Icon }) {
     );
 }
 
+function ChartTooltip({ active, payload }) {
+    if (!active || !payload?.length) return null;
+
+    return (
+        <div className="rounded-[14px] border border-[rgba(91,97,110,0.18)] bg-white px-3 py-2 text-[13px] shadow-sm">
+            {payload.map((item) => (
+                <p key={item.name} className="text-[#5b616e]">
+                    <span className="font-semibold text-[#0a0b0d]">{item.name}: </span>
+                    {item.value}
+                </p>
+            ))}
+        </div>
+    );
+}
+
 export default function AssessorDashboardPage() {
     const { data, loading, error } = useAssessorData("/internships.php");
     const internships = data?.internships || [];
     const graded = internships.filter((item) => item.assessment_id).length;
     const pending = internships.length - graded;
+    const statusData = [
+        { name: "Graded", value: graded, color: "#0052ff" },
+        { name: "Pending", value: pending, color: "#a8b0bd" },
+    ].filter((item) => item.value > 0);
 
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
@@ -69,6 +89,67 @@ export default function AssessorDashboardPage() {
                         <StatChip label="Assigned Students" value={internships.length} icon={Users} />
                         <StatChip label="Pending Marks" value={pending} icon={ClipboardText} />
                         <StatChip label="Completed" value={graded} icon={ChartBar} />
+                    </div>
+                </section>
+
+                <section className="mt-16 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-stretch">
+                    <div className="rounded-[24px] border border-[rgba(91,97,110,0.18)] bg-transparent px-6 py-5">
+                        <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                            Assessment Progress
+                        </h2>
+                        <div className="mt-5 h-[260px]">
+                            {statusData.length ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={statusData}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={68}
+                                            outerRadius={98}
+                                            paddingAngle={4}
+                                        >
+                                            {statusData.map((entry) => (
+                                                <Cell key={entry.name} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip content={<ChartTooltip />} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex h-full items-center justify-center rounded-[18px] border border-dashed border-[rgba(91,97,110,0.28)] bg-white text-[14px] font-semibold text-[#5b616e]">
+                                    No assigned students to chart yet.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="rounded-[24px] bg-[#0a0b0d] px-6 py-5 text-white">
+                        <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-white/60">
+                            Queue Summary
+                        </p>
+                        <p className="mt-6 text-[56px] font-medium leading-none tabular-nums">
+                            {internships.length ? Math.round((graded / internships.length) * 100) : 0}%
+                        </p>
+                        <p className="mt-3 text-[15px] leading-[1.5] text-white/70">
+                            of assigned internships have submitted marks.
+                        </p>
+                        <div className="mt-8 grid grid-cols-2 gap-3">
+                            <div className="rounded-[16px] bg-white/10 px-4 py-3">
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/55">
+                                    Graded
+                                </p>
+                                <p className="mt-1 text-[26px] font-semibold tabular-nums">{graded}</p>
+                            </div>
+                            <div className="rounded-[16px] bg-white/10 px-4 py-3">
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-white/55">
+                                    Pending
+                                </p>
+                                <p className="mt-1 text-[26px] font-semibold tabular-nums">{pending}</p>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

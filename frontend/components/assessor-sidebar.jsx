@@ -10,11 +10,13 @@ import {
     SidebarHeader,
     SidebarTitle,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupLabel,
     SidebarNav,
     SidebarItem,
 } from "./sidebar";
+import SidebarLogout from "./sidebar-logout";
 
 function AssessorSidebar() {
     return (
@@ -51,6 +53,10 @@ function AssessorSidebar() {
                     </SidebarNav>
                 </SidebarGroup>
             </SidebarContent>
+
+            <SidebarFooter>
+                <SidebarLogout />
+            </SidebarFooter>
         </Sidebar>
     );
 }
