@@ -36,15 +36,15 @@ if ($method === 'POST') {
     $data = read_json_body();
     require_fields($data, ['student_id', 'assessor_id', 'company_name']);
 
+    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $assessor_id = validate_int($data['assessor_id'], 'assessor_id', 1);
+    $company_name = validate_string($data['company_name'], 'company_name', 150, 2);
+
     $stmt = $pdo->prepare(
         'INSERT INTO Internships (student_id, assessor_id, company_name)
          VALUES (?, ?, ?)'
     );
-    $stmt->execute([
-        trim((string) $data['student_id']),
-        (int) $data['assessor_id'],
-        trim((string) $data['company_name']),
-    ]);
+    $stmt->execute([$student_id, $assessor_id, $company_name]);
 
     json_response([
         'message' => 'Internship assigned.',
@@ -57,17 +57,17 @@ if ($method === 'PUT') {
     $data = read_json_body();
     require_fields($data, ['internship_id', 'student_id', 'assessor_id', 'company_name']);
 
+    $internship_id = validate_int($data['internship_id'], 'internship_id', 1);
+    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $assessor_id = validate_int($data['assessor_id'], 'assessor_id', 1);
+    $company_name = validate_string($data['company_name'], 'company_name', 150, 2);
+
     $stmt = $pdo->prepare(
         'UPDATE Internships
          SET student_id = ?, assessor_id = ?, company_name = ?
          WHERE internship_id = ?'
     );
-    $stmt->execute([
-        trim((string) $data['student_id']),
-        (int) $data['assessor_id'],
-        trim((string) $data['company_name']),
-        (int) $data['internship_id'],
-    ]);
+    $stmt->execute([$student_id, $assessor_id, $company_name, $internship_id]);
 
     if ($stmt->rowCount() === 0) {
         json_response(['error' => 'Internship not found or no changes made.'], 404);
@@ -79,10 +79,7 @@ if ($method === 'PUT') {
 if ($method === 'DELETE') {
     require_role('Admin');
     $data = read_json_body();
-    $internship_id = (int) ($data['internship_id'] ?? $_GET['internship_id'] ?? 0);
-    if ($internship_id <= 0) {
-        json_response(['error' => 'Missing required field: internship_id.'], 400);
-    }
+    $internship_id = validate_int($data['internship_id'] ?? $_GET['internship_id'] ?? 0, 'internship_id', 1);
 
     $stmt = $pdo->prepare('DELETE FROM Internships WHERE internship_id = ?');
     $stmt->execute([$internship_id]);

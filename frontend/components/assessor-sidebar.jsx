@@ -2,8 +2,7 @@
 
 import { SquaresFour } from "@phosphor-icons/react/dist/icons/SquaresFour";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
-import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
-import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
+import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
 import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
 
 import {
@@ -17,11 +16,11 @@ import {
     SidebarItem,
 } from "./sidebar";
 
-function AdminSidebar() {
+function AssessorSidebar() {
     return (
         <Sidebar>
             <SidebarHeader>
-                <SidebarTitle>Admin Portal</SidebarTitle>
+                <SidebarTitle>Assessor Portal</SidebarTitle>
             </SidebarHeader>
 
             <SidebarContent>
@@ -29,29 +28,25 @@ function AdminSidebar() {
                     <SidebarGroupLabel>Main</SidebarGroupLabel>
                     <SidebarNav>
                         <SidebarItem
-                            href="/dashboard"
+                            href="/assessor"
                             icon={SquaresFour}
                             label="Dashboard"
+                            exact
                         />
                         <SidebarItem
-                            href="/students"
+                            href="/assessor/students"
                             icon={Users}
-                            label="Students"
+                            label="My Students"
                         />
                         <SidebarItem
-                            href="/assessors"
-                            icon={UserGear}
-                            label="Assessors"
+                            href="/assessor/grade"
+                            icon={ClipboardText}
+                            label="Enter Marks"
                         />
                         <SidebarItem
-                            href="/internships"
-                            icon={Briefcase}
-                            label="Internships"
-                        />
-                        <SidebarItem
-                            href="/results"
+                            href="/assessor/results"
                             icon={ChartBar}
-                            label="Results"
+                            label="My Results"
                         />
                     </SidebarNav>
                 </SidebarGroup>
@@ -60,4 +55,4 @@ function AdminSidebar() {
     );
 }
 
-export default AdminSidebar;
+export default AssessorSidebar;

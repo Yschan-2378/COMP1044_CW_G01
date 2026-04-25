@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $data = read_json_body();
 require_fields($data, ['username', 'password']);
 
-$username = trim((string) $data['username']);
-$password = (string) $data['password'];
+$username = validate_string($data['username'], 'username', 50, 1);
+$password = validate_string($data['password'], 'password', 100, 1);
 
 $stmt = $pdo->prepare('SELECT user_id, username, password_hash, role FROM Users WHERE username = ?');
 $stmt->execute([$username]);

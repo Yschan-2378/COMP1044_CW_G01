@@ -4,13 +4,10 @@ import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { Briefcase } from "@phosphor-icons/react/dist/icons/Briefcase";
 import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
 import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
-import { ListChecks } from "@phosphor-icons/react/dist/icons/ListChecks";
-import { Clock } from "@phosphor-icons/react/dist/icons/Clock";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/icons/ArrowUpRight";
-import { TrendUp } from "@phosphor-icons/react/dist/icons/TrendUp";
+import { Users } from "@phosphor-icons/react/dist/icons/Users";
+import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
 
 import Button from "@/components/button";
-import Badge from "@/components/badge";
 import {
     Table,
     TableBody,
@@ -19,72 +16,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/table";
+import { useApi } from "@/lib/use-api";
 
-const heroStat = {
-    label: "Total Students",
-    value: 248,
-    delta: "+12 this week",
-    caption:
-        "Enrolled across the current programme cycle - spanning 192 active internships and 36 assessors.",
-};
-
-const supportingStats = [
-    { label: "Assessors", value: 36, icon: UserGear },
-    { label: "Internships Assigned", value: 192, icon: Briefcase },
-    { label: "Pending Assessments", value: 44, icon: Clock },
-    { label: "Completed Assessments", value: 148, icon: ListChecks },
-];
-
-const recentRecords = [
-    {
-        student: "Aisha Rahman",
-        company: "TechFlow Solutions",
-        assessor: "Dr. James Chen",
-        status: "Approved",
-    },
-    {
-        student: "Marcus Johnson",
-        company: "Alpha Analytics",
-        assessor: "Prof. Sarah Lin",
-        status: "Pending",
-    },
-    {
-        student: "Priya Nair",
-        company: "CloudScale Inc.",
-        assessor: "Mr. David Park",
-        status: "Submitted",
-    },
-    {
-        student: "Tomáš Horák",
-        company: "DataBridge Ltd",
-        assessor: "Dr. Emily Carter",
-        status: "Pending",
-    },
-    {
-        student: "Lina Osei",
-        company: "NexGen Systems",
-        assessor: "Prof. Michael Adams",
-        status: "Approved",
-    },
-    {
-        student: "Chen Wei",
-        company: "Horizon Labs",
-        assessor: "Dr. Anna Volkov",
-        status: "Submitted",
-    },
-];
-
-const quickActions = [
-    { label: "Add Assessor", icon: Plus, href: "/assessors/add" },
-    {
-        label: "Assign Internship",
-        icon: Briefcase,
-        href: "/internships/assign",
-    },
-    { label: "View Results", icon: ChartBar, href: "/results" },
-];
-
-function SupportingStat({ stat }) {
+function StatChip({ stat }) {
     const Icon = stat.icon;
 
     return (
@@ -96,7 +30,7 @@ function SupportingStat({ stat }) {
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
                     {stat.label}
                 </p>
-                <p className="mt-1 text-[28px] font-semibold leading-[1] tracking-[-0.02em] text-[#0a0b0d]">
+                <p className="mt-1 text-[28px] font-semibold leading-[1] text-[#0a0b0d] tabular-nums">
                     {stat.value}
                 </p>
             </div>
@@ -105,100 +39,109 @@ function SupportingStat({ stat }) {
 }
 
 export default function DashboardPage() {
+    const studentsApi = useApi("/students.php");
+    const assessorsApi = useApi("/assessors.php");
+    const internshipsApi = useApi("/internships.php");
+    const resultsApi = useApi("/results.php");
+
+    const students = studentsApi.data?.students ?? [];
+    const assessors = assessorsApi.data?.assessors ?? [];
+    const internships = internshipsApi.data?.internships ?? [];
+    const results = resultsApi.data?.results ?? [];
+    const assessmentCount = results.filter((row) => row.assessment_id != null).length;
+
+    const stats = [
+        { label: "Students", value: students.length, icon: Users },
+        { label: "Assessors", value: assessors.length, icon: UserGear },
+        { label: "Internships", value: internships.length, icon: Briefcase },
+        { label: "Assessments", value: assessmentCount, icon: ClipboardText },
+    ];
+
+    const recentAssignments = internships.slice(0, 5);
+
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
             <div className="mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-16">
                 <section className="grid grid-cols-1 gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] lg:items-end">
                     <div>
                         <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                            {heroStat.label}
+                            Internship Result Management
                         </p>
-                        <p className="mt-4 text-[96px] font-medium leading-[0.92] tracking-[-0.04em] text-[#0a0b0d] md:text-[128px] lg:text-[144px] tabular-nums">
-                            {heroStat.value}
-                        </p>
+                        <h1 className="mt-4 max-w-[10ch] text-[72px] font-medium leading-[0.96] tracking-[-0.04em] text-[#0a0b0d] md:text-[104px]">
+                            Admin Dashboard
+                        </h1>
                     </div>
-                    <div className="lg:pb-4">
-                        <span className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#0052ff]">
-                            <TrendUp size={16} weight="bold" />
-                            {heroStat.delta}
-                        </span>
-                        <p className="mt-3 max-w-[36ch] text-[16px] leading-[1.5] text-[#5b616e]">
-                            {heroStat.caption}
-                        </p>
-                    </div>
+                    <p className="max-w-[38ch] text-[16px] leading-[1.5] text-[#5b616e] lg:pb-4">
+                        Manage the entire student internship experience, from students to assessors.
+                    </p>
                 </section>
+
                 <section className="mt-12">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        {supportingStats.map((stat) => (
-                            <SupportingStat
-                                key={stat.label}
-                                stat={stat}
-                            />
+                        {stats.map((stat) => (
+                            <StatChip key={stat.label} stat={stat} />
                         ))}
                     </div>
                 </section>
 
-                {/* Quick Actions */}
                 <section className="mt-16">
                     <div className="flex flex-wrap gap-3">
-                        <Button variant="primary">
+                        <Button variant="primary" href="/students">
                             <Plus size={18} weight="bold" className="mr-2" />
-                            New Student
+                            Add Student
                         </Button>
-                        {quickActions.map((action) => {
-                            const Icon = action.icon;
-                            return (
-                                <Button
-                                    key={action.label}
-                                    variant="secondary"
-                                    href={action.href}
-                                    className="gap-2"
-                                >
-                                    <Icon size={18} weight="bold" />
-                                    {action.label}
-                                </Button>
-                            );
-                        })}
+                        <Button variant="secondary" href="/assessors" className="gap-2">
+                            <UserGear size={18} weight="bold" />
+                            Create Assessor
+                        </Button>
+                        <Button variant="secondary" href="/internships" className="gap-2">
+                            <Briefcase size={18} weight="bold" />
+                            Assign Internship
+                        </Button>
+                        <Button variant="secondary" href="/results" className="gap-2">
+                            <ChartBar size={18} weight="bold" />
+                            View Results
+                        </Button>
                     </div>
                 </section>
 
-                {/* Recent Records Table */}
                 <section className="mt-16">
-                    <div className="flex items-end justify-between">
-                        <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                            Recent Assignments
-                        </h2>
-                        <a
-                            href="/internships"
-                            className="inline-flex items-center gap-1 text-[14px] font-semibold text-[#0052ff] hover:text-[#578bfa] transition-colors"
-                        >
-                            View all
-                            <ArrowUpRight size={16} weight="bold" />
-                        </a>
-                    </div>
+                    <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
+                        Recent Internship Assignments
+                    </h2>
                     <div className="mt-4">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Student</TableHead>
-                                    <TableHead>Company</TableHead>
+                                    <TableHead>Student ID</TableHead>
+                                    <TableHead>Student Name</TableHead>
+                                    <TableHead>Company Name</TableHead>
                                     <TableHead>Assessor</TableHead>
-                                    <TableHead>Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {recentRecords.map((record) => (
-                                    <TableRow key={record.student}>
-                                        <TableCell className="font-semibold">
-                                            {record.student}
-                                        </TableCell>
-                                        <TableCell>{record.company}</TableCell>
-                                        <TableCell>{record.assessor}</TableCell>
-                                        <TableCell>
-                                            <Badge status={record.status} />
+                                {recentAssignments.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell className="text-[#5b616e]" colSpan={4}>
+                                            {internshipsApi.loading
+                                                ? "Loading assignments..."
+                                                : "No internships assigned yet."}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : (
+                                    recentAssignments.map((record) => (
+                                        <TableRow key={record.internship_id}>
+                                            <TableCell className="font-semibold tabular-nums">
+                                                {record.student_id}
+                                            </TableCell>
+                                            <TableCell className="font-semibold">
+                                                {record.student_name}
+                                            </TableCell>
+                                            <TableCell>{record.company_name}</TableCell>
+                                            <TableCell>{record.assessor_username}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>

@@ -30,11 +30,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $user = require_auth();
-    $internship_id = (int) ($_GET['internship_id'] ?? 0);
-
-    if ($internship_id <= 0) {
-        json_response(['error' => 'Missing required query parameter: internship_id.'], 400);
-    }
+    $internship_id = validate_int($_GET['internship_id'] ?? 0, 'internship_id', 1);
 
     $sql = "SELECT a.*
             FROM Assessments a
@@ -63,10 +59,7 @@ if ($method === 'POST' || $method === 'PUT') {
     $data = read_json_body();
     require_fields($data, ['internship_id']);
 
-    $internship_id = (int) $data['internship_id'];
-    if ($internship_id <= 0) {
-        json_response(['error' => 'internship_id must be a positive integer.'], 400);
-    }
+    $internship_id = validate_int($data['internship_id'], 'internship_id', 1);
 
     $assigned = $pdo->prepare(
         'SELECT internship_id
@@ -88,7 +81,8 @@ if ($method === 'POST' || $method === 'PUT') {
         'project_mgt_mark' => required_mark($data, 'project_mgt_mark'),
         'time_mgt_mark' => required_mark($data, 'time_mgt_mark'),
     ];
-    $comments = trim((string) ($data['qualitative_comments'] ?? ''));
+    $comments_raw = (string) ($data['qualitative_comments'] ?? '');
+    $comments = $comments_raw === '' ? '' : validate_string($comments_raw, 'qualitative_comments', 2000, 0);
     $final_score = calculate_final_score($marks);
 
     $stmt = $pdo->prepare(

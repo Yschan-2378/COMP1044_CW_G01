@@ -17,7 +17,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     require_auth();
 
-    $search = trim((string) ($_GET['search'] ?? ''));
+    $search = mb_substr(trim((string) ($_GET['search'] ?? '')), 0, 100);
     if ($search !== '') {
         $stmt = $pdo->prepare(
             'SELECT student_id, student_name, programme
@@ -43,15 +43,15 @@ if ($method === 'POST') {
     $data = read_json_body();
     require_fields($data, ['student_id', 'student_name', 'programme']);
 
+    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $student_name = validate_string($data['student_name'], 'student_name', 100, 2);
+    $programme = validate_string($data['programme'], 'programme', 100, 2);
+
     $stmt = $pdo->prepare(
         'INSERT INTO Students (student_id, student_name, programme)
          VALUES (?, ?, ?)'
     );
-    $stmt->execute([
-        trim((string) $data['student_id']),
-        trim((string) $data['student_name']),
-        trim((string) $data['programme']),
-    ]);
+    $stmt->execute([$student_id, $student_name, $programme]);
 
     json_response(['message' => 'Student created.'], 201);
 }
@@ -61,16 +61,16 @@ if ($method === 'PUT') {
     $data = read_json_body();
     require_fields($data, ['student_id', 'student_name', 'programme']);
 
+    $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
+    $student_name = validate_string($data['student_name'], 'student_name', 100, 2);
+    $programme = validate_string($data['programme'], 'programme', 100, 2);
+
     $stmt = $pdo->prepare(
         'UPDATE Students
          SET student_name = ?, programme = ?
          WHERE student_id = ?'
     );
-    $stmt->execute([
-        trim((string) $data['student_name']),
-        trim((string) $data['programme']),
-        trim((string) $data['student_id']),
-    ]);
+    $stmt->execute([$student_name, $programme, $student_id]);
 
     if ($stmt->rowCount() === 0) {
         json_response(['error' => 'Student not found or no changes made.'], 404);
@@ -82,10 +82,13 @@ if ($method === 'PUT') {
 if ($method === 'DELETE') {
     require_role('Admin');
     $data = read_json_body();
-    $student_id = trim((string) ($data['student_id'] ?? $_GET['student_id'] ?? ''));
-    if ($student_id === '') {
-        json_response(['error' => 'Missing required field: student_id.'], 400);
-    }
+    $student_id = validate_string(
+        $data['student_id'] ?? $_GET['student_id'] ?? '',
+        'student_id',
+        20,
+        4,
+        '/^[A-Za-z0-9-]+$/'
+    );
 
     $stmt = $pdo->prepare('DELETE FROM Students WHERE student_id = ?');
     $stmt->execute([$student_id]);

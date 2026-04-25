@@ -5,15 +5,12 @@ import { Plus } from "@phosphor-icons/react/dist/icons/Plus";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
 import { UserGear } from "@phosphor-icons/react/dist/icons/UserGear";
 import { Users } from "@phosphor-icons/react/dist/icons/Users";
-import { Pulse } from "@phosphor-icons/react/dist/icons/Pulse";
-import { ArrowsClockwise } from "@phosphor-icons/react/dist/icons/ArrowsClockwise";
 import { Copy } from "@phosphor-icons/react/dist/icons/Copy";
+import { ArrowsClockwise } from "@phosphor-icons/react/dist/icons/ArrowsClockwise";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
 import Label from "@/components/label";
-import Dropdown from "@/components/dropdown";
-import Toggle from "@/components/toggle";
 import { DataTable } from "@/components/data-table";
 import {
     Modal,
@@ -23,114 +20,16 @@ import {
     ModalHeader,
     ModalTitle,
 } from "@/components/modal";
+import { apiFetch } from "@/lib/api";
+import { useApi } from "@/lib/use-api";
 
-const DEPARTMENTS = [
-    "Computer Science",
-    "Software Engineering",
-    "Information Technology",
-    "Data Science",
-    "Industry Partner",
-];
-
-const ROLES = ["Lecturer", "Supervisor"];
-
-const INITIAL_ASSESSORS = [
-    {
-        id: "AS-1042",
-        name: "Dr. James Chen",
-        email: "j.chen@uni.edu",
-        department: "Computer Science",
-        role: "Lecturer",
-        username: "jchen",
-        phone: "+44 7700 800001",
-        active: true,
-        assigned: ["Aisha Rahman", "Chen Wei", "Sofia Martinez"],
-    },
-    {
-        id: "AS-1043",
-        name: "Prof. Sarah Lin",
-        email: "s.lin@uni.edu",
-        department: "Software Engineering",
-        role: "Lecturer",
-        username: "slin",
-        phone: "+44 7700 800002",
-        active: true,
-        assigned: ["Marcus Johnson", "Tomáš Horák"],
-    },
-    {
-        id: "AS-1044",
-        name: "Mr. David Park",
-        email: "david.park@cloudscale.com",
-        department: "Industry Partner",
-        role: "Supervisor",
-        username: "dpark",
-        phone: "+44 7700 800003",
-        active: true,
-        assigned: ["Priya Nair"],
-    },
-    {
-        id: "AS-1045",
-        name: "Dr. Emily Carter",
-        email: "e.carter@uni.edu",
-        department: "Data Science",
-        role: "Lecturer",
-        username: "ecarter",
-        phone: "+44 7700 800004",
-        active: false,
-        assigned: [],
-    },
-    {
-        id: "AS-1046",
-        name: "Prof. Michael Adams",
-        email: "m.adams@uni.edu",
-        department: "Information Technology",
-        role: "Lecturer",
-        username: "madams",
-        phone: "+44 7700 800005",
-        active: true,
-        assigned: ["Lina Osei"],
-    },
-    {
-        id: "AS-1047",
-        name: "Dr. Anna Volkov",
-        email: "anna.v@horizonlabs.io",
-        department: "Industry Partner",
-        role: "Supervisor",
-        username: "avolkov",
-        phone: "+44 7700 800006",
-        active: true,
-        assigned: ["Marcus Johnson", "Sofia Martinez"],
-    },
-];
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_PATTERN = /^[a-z][a-z0-9_]{2,19}$/;
-
-const EMPTY_FORM = {
-    id: "",
-    name: "",
-    email: "",
-    department: DEPARTMENTS[0],
-    role: ROLES[0],
-    username: "",
-    password: "",
-    phone: "",
-    active: true,
-    assigned: [],
-};
-
-function generateId(existing) {
-    let n = 1048;
-    const ids = new Set(existing.map((a) => a.id));
-    while (ids.has(`AS-${n}`)) n += 1;
-    return `AS-${n}`;
-}
+const EMPTY_FORM = { username: "", password: "" };
 
 function generatePassword() {
-    const chars =
-        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
     let out = "";
-    for (let i = 0; i < 14; i += 1) {
+    for (let index = 0; index < 14; index += 1) {
         out += chars[Math.floor(Math.random() * chars.length)];
     }
     return out;
@@ -138,38 +37,23 @@ function generatePassword() {
 
 function validate(form, assessors, editingId, requirePassword) {
     const errors = {};
-    if (!form.name.trim()) errors.name = "Required";
-    if (!form.email.trim()) errors.email = "Required";
-    else if (!EMAIL_PATTERN.test(form.email.trim()))
-        errors.email = "Invalid email";
-    else if (
-        assessors.some(
-            (a) =>
-                a.email.toLowerCase() === form.email.trim().toLowerCase() &&
-                a.id !== editingId
-        )
-    )
-        errors.email = "Email already in use";
+    const username = form.username.trim().toLowerCase();
 
-    if (!form.username.trim()) errors.username = "Required";
-    else if (!USERNAME_PATTERN.test(form.username.trim()))
-        errors.username = "3–20 chars, lowercase, starts with a letter";
-    else if (
+    if (!username) errors.username = "Required";
+    else if (!USERNAME_PATTERN.test(username)) {
+        errors.username = "3-20 chars, lowercase, starts with a letter";
+    } else if (
         assessors.some(
-            (a) =>
-                a.username.toLowerCase() ===
-                    form.username.trim().toLowerCase() && a.id !== editingId
+            (assessor) =>
+                assessor.username.toLowerCase() === username && assessor.user_id !== editingId,
         )
-    )
-        errors.username = "Username already taken";
-
-    if (!form.department) errors.department = "Required";
-    if (!form.role) errors.role = "Required";
+    ) {
+        errors.username = "Username already exists";
+    }
 
     if (requirePassword) {
         if (!form.password.trim()) errors.password = "Required";
-        else if (form.password.trim().length < 8)
-            errors.password = "Min 8 characters";
+        else if (form.password.trim().length < 8) errors.password = "Min 8 characters";
     }
 
     return errors;
@@ -181,11 +65,11 @@ function StatChip({ label, value, icon: Icon }) {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
                 <Icon size={18} weight="bold" />
             </div>
-            <div className="min-w-0">
+            <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
                     {label}
                 </p>
-                <p className="mt-1 text-[28px] font-semibold leading-[1] tracking-[-0.02em] text-[#0a0b0d] tabular-nums">
+                <p className="mt-1 text-[28px] font-semibold leading-[1] text-[#0a0b0d] tabular-nums">
                     {value}
                 </p>
             </div>
@@ -193,17 +77,7 @@ function StatChip({ label, value, icon: Icon }) {
     );
 }
 
-function RoleBadge({ role }) {
-    const base =
-        "inline-flex items-center rounded-full px-3 py-1 text-[13px] font-bold leading-[1.23] tracking-[0.01em]";
-    const styles =
-        role === "Supervisor"
-            ? "bg-[#0052ff] text-white"
-            : "bg-[#eef0f3] text-[#0a0b0d]";
-    return <span className={`${base} ${styles}`}>{role}</span>;
-}
-
-function FormField({ label, error, children, hint }) {
+function FormField({ label, error, hint, children }) {
     return (
         <div>
             <Label className="mb-2">{label}</Label>
@@ -222,23 +96,19 @@ function FormField({ label, error, children, hint }) {
 function PasswordField({ value, onChange, error, onGenerate }) {
     async function copy() {
         if (!value) return;
-        try {
-            await navigator.clipboard.writeText(value);
-        } catch {
-            /* ignore */
-        }
+        await navigator.clipboard?.writeText(value).catch(() => {});
     }
 
     return (
         <FormField
-            label="Initial Password"
+            label="Temporary Password"
             error={error}
-            hint="Share securely with the assessor — they'll be prompted to change it on first login."
+            hint="This becomes the password_hash value after the PHP backend hashes it."
         >
             <div className="flex gap-2">
                 <Input
                     type="text"
-                    placeholder="Click generate or type a password"
+                    placeholder="Generate or type a password"
                     value={value}
                     onChange={onChange}
                     className="flex-1 font-mono"
@@ -247,8 +117,7 @@ function PasswordField({ value, onChange, error, onGenerate }) {
                     type="button"
                     onClick={copy}
                     aria-label="Copy password"
-                    className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d] transition-colors hover:bg-[#eef0f3] disabled:opacity-50"
-                    disabled={!value}
+                    className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
                 >
                     <Copy size={16} weight="bold" />
                 </button>
@@ -266,299 +135,184 @@ function PasswordField({ value, onChange, error, onGenerate }) {
 }
 
 function AssessorForm({ form, setForm, errors, mode }) {
-    const update = (key) => (e) =>
-        setForm((f) => ({ ...f, [key]: e.target.value }));
-
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-                <FormField label="Full Name" error={errors.name}>
-                    <Input
-                        placeholder="Dr. Jane Doe"
-                        value={form.name}
-                        onChange={update("name")}
-                    />
-                </FormField>
-            </div>
-            <FormField label="Email" error={errors.email}>
-                <Input
-                    type="email"
-                    placeholder="jane.doe@uni.edu"
-                    value={form.email}
-                    onChange={update("email")}
-                />
-            </FormField>
-            <FormField label="Phone">
-                <Input
-                    placeholder="+44 7700 800000"
-                    value={form.phone}
-                    onChange={update("phone")}
-                />
-            </FormField>
-            <FormField label="Department" error={errors.department}>
-                <Dropdown
-                    value={form.department}
-                    onChange={(v) =>
-                        setForm((f) => ({ ...f, department: v }))
-                    }
-                    options={DEPARTMENTS}
-                />
-            </FormField>
-            <FormField label="Role" error={errors.role}>
-                <Dropdown
-                    value={form.role}
-                    onChange={(v) => setForm((f) => ({ ...f, role: v }))}
-                    options={ROLES}
-                />
-            </FormField>
+        <div className="grid grid-cols-1 gap-4">
             <FormField label="Username" error={errors.username}>
                 <Input
                     placeholder="jdoe"
                     value={form.username}
-                    onChange={update("username")}
+                    onChange={(event) =>
+                        setForm((current) => ({ ...current, username: event.target.value }))
+                    }
                 />
             </FormField>
-            <div className="flex items-end">
-                <div className="flex w-full items-center justify-between rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white px-5 py-3">
-                    <div>
-                        <p className="text-[14px] font-semibold text-[#0a0b0d]">
-                            Account Active
-                        </p>
-                        <p className="text-[13px] text-[#5b616e]">
-                            {form.active ? "Can sign in" : "Sign-in disabled"}
-                        </p>
-                    </div>
-                    <Toggle
-                        checked={form.active}
-                        onChange={(v) =>
-                            setForm((f) => ({ ...f, active: v }))
-                        }
-                        label="Account active"
-                    />
-                </div>
-            </div>
             {mode === "add" && (
-                <div className="sm:col-span-2">
-                    <PasswordField
-                        value={form.password}
-                        onChange={update("password")}
-                        error={errors.password}
-                        onGenerate={() =>
-                            setForm((f) => ({
-                                ...f,
-                                password: generatePassword(),
-                            }))
-                        }
-                    />
-                </div>
+                <PasswordField
+                    value={form.password}
+                    onChange={(event) =>
+                        setForm((current) => ({ ...current, password: event.target.value }))
+                    }
+                    error={errors.password}
+                    onGenerate={() =>
+                        setForm((current) => ({ ...current, password: generatePassword() }))
+                    }
+                />
             )}
         </div>
     );
 }
 
 export default function AssessorsPage() {
-    const [assessors, setAssessors] = useState(INITIAL_ASSESSORS);
-    const [search, setSearch] = useState("");
-    const [deptFilter, setDeptFilter] = useState("All");
-    const [roleFilter, setRoleFilter] = useState("All");
+    const { data, loading, error, refetch } = useApi("/assessors.php");
+    const assessors = data?.assessors ?? [];
 
+    const [search, setSearch] = useState("");
     const [addOpen, setAddOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-    const [viewTarget, setViewTarget] = useState(null);
     const [resetTarget, setResetTarget] = useState(null);
     const [resetPassword, setResetPassword] = useState("");
-
     const [form, setForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
+    const [submitError, setSubmitError] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return assessors.filter((a) => {
-            if (deptFilter !== "All" && a.department !== deptFilter)
-                return false;
-            if (roleFilter !== "All" && a.role !== roleFilter) return false;
-            if (
-                q &&
-                !a.name.toLowerCase().includes(q) &&
-                !a.email.toLowerCase().includes(q)
-            )
-                return false;
-            return true;
-        });
-    }, [assessors, search, deptFilter, roleFilter]);
-
-    const stats = useMemo(() => {
-        const total = assessors.length;
-        const active = assessors.filter((a) => a.active).length;
-        const inactive = total - active;
-        const supervisors = assessors.filter((a) => a.role === "Supervisor").length;
-        const totalAssigned = assessors.reduce(
-            (sum, a) => sum + a.assigned.length,
-            0
+        const query = search.trim().toLowerCase();
+        return assessors.filter((assessor) =>
+            query ? assessor.username.toLowerCase().includes(query) : true,
         );
-        const avg = total ? (totalAssigned / total).toFixed(1) : "0";
-        const busiest = [...assessors].sort(
-            (a, b) => b.assigned.length - a.assigned.length,
-        )[0];
-        return { total, active, inactive, supervisors, avg, busiest };
-    }, [assessors]);
+    }, [assessors, search]);
 
     function openAdd() {
-        setForm({ ...EMPTY_FORM, id: generateId(assessors) });
+        setForm({ ...EMPTY_FORM, password: generatePassword() });
         setErrors({});
+        setSubmitError(null);
         setAddOpen(true);
     }
 
-    function openEdit(a) {
-        setForm({ ...a, password: "" });
+    function openEdit(assessor) {
+        setForm({ username: assessor.username, password: "" });
         setErrors({});
-        setEditTarget(a);
+        setSubmitError(null);
+        setEditTarget(assessor);
     }
 
     function closeAll() {
         setAddOpen(false);
         setEditTarget(null);
         setDeleteTarget(null);
-        setViewTarget(null);
         setResetTarget(null);
         setResetPassword("");
         setErrors({});
+        setSubmitError(null);
     }
 
-    function submitAdd() {
-        const errs = validate(form, assessors, null, true);
-        if (Object.keys(errs).length) return setErrors(errs);
-        const { password, ...rest } = form;
-        setAssessors((prev) => [
-            ...prev,
-            {
-                ...rest,
-                id: form.id || generateId(prev),
-                name: form.name.trim(),
-                email: form.email.trim(),
-                username: form.username.trim().toLowerCase(),
-            },
-        ]);
-        closeAll();
+    async function submitAdd() {
+        const nextErrors = validate(form, assessors, null, true);
+        if (Object.keys(nextErrors).length) return setErrors(nextErrors);
+        setSubmitting(true);
+        setSubmitError(null);
+        try {
+            await apiFetch("/assessors.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: form.username.trim().toLowerCase(),
+                    password: form.password,
+                }),
+            });
+            await refetch();
+            closeAll();
+        } catch (err) {
+            setSubmitError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     }
 
-    function submitEdit() {
-        const errs = validate(form, assessors, editTarget.id, false);
-        if (Object.keys(errs).length) return setErrors(errs);
-        setAssessors((prev) =>
-            prev.map((a) =>
-                a.id === editTarget.id
-                    ? {
-                          ...a,
-                          name: form.name.trim(),
-                          email: form.email.trim(),
-                          username: form.username.trim().toLowerCase(),
-                          phone: form.phone,
-                          department: form.department,
-                          role: form.role,
-                          active: form.active,
-                      }
-                    : a
-            )
-        );
-        closeAll();
+    async function submitEdit() {
+        const nextErrors = validate(form, assessors, editTarget.user_id, false);
+        if (Object.keys(nextErrors).length) return setErrors(nextErrors);
+        setSubmitting(true);
+        setSubmitError(null);
+        try {
+            await apiFetch("/assessors.php", {
+                method: "PUT",
+                body: JSON.stringify({
+                    user_id: editTarget.user_id,
+                    username: form.username.trim().toLowerCase(),
+                }),
+            });
+            await refetch();
+            closeAll();
+        } catch (err) {
+            setSubmitError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     }
 
-    function confirmDelete() {
-        if (deleteTarget?.assigned.length) return;
-        setAssessors((prev) => prev.filter((a) => a.id !== deleteTarget.id));
-        closeAll();
+    async function confirmDelete() {
+        setSubmitting(true);
+        setSubmitError(null);
+        try {
+            await apiFetch("/assessors.php", {
+                method: "DELETE",
+                body: JSON.stringify({ user_id: deleteTarget.user_id }),
+            });
+            await refetch();
+            closeAll();
+        } catch (err) {
+            setSubmitError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     }
 
-    function clearFilters() {
-        setSearch("");
-        setDeptFilter("All");
-        setRoleFilter("All");
+    function openReset(assessor) {
+        setResetTarget(assessor);
+        setResetPassword(generatePassword());
+        setSubmitError(null);
     }
 
-    function bulkDelete(rows, clear) {
-        const deletable = rows.filter((r) => r.assigned.length === 0);
-        const ids = new Set(deletable.map((r) => r.id));
-        setAssessors((prev) => prev.filter((a) => !ids.has(a.id)));
-        clear();
+    async function applyReset() {
+        setSubmitting(true);
+        setSubmitError(null);
+        try {
+            await apiFetch("/assessors.php", {
+                method: "PUT",
+                body: JSON.stringify({
+                    user_id: resetTarget.user_id,
+                    username: resetTarget.username,
+                    password: resetPassword,
+                }),
+            });
+            closeAll();
+        } catch (err) {
+            setSubmitError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     }
-
-    function bulkDeactivate(rows, clear) {
-        const ids = new Set(rows.map((r) => r.id));
-        setAssessors((prev) =>
-            prev.map((a) => (ids.has(a.id) ? { ...a, active: false } : a)),
-        );
-        clear();
-    }
-
-    const isFiltered =
-        search !== "" || deptFilter !== "All" || roleFilter !== "All";
 
     const columns = [
+        { key: "user_id", header: "User ID", cellClassName: "font-semibold tabular-nums" },
+        { key: "username", header: "Username", cellClassName: "font-semibold" },
+        { key: "role", header: "Role", cellClassName: "text-[#5b616e]" },
         {
-            key: "id",
-            header: "Assessor ID",
-            cellClassName: "font-semibold tabular-nums",
-        },
-        { key: "name", header: "Name", cellClassName: "font-semibold" },
-        { key: "email", header: "Email", cellClassName: "text-[#5b616e]" },
-        {
-            key: "department",
-            header: "Department",
-            cellClassName: "text-[#5b616e]",
-        },
-        {
-            key: "role",
-            header: "Role",
-            cell: (a) => <RoleBadge role={a.role} />,
-        },
-        {
-            key: "assigned",
-            header: "Students",
-            align: "center",
-            accessor: (a) => a.assigned.length,
-            cellClassName: "text-center tabular-nums font-semibold",
-            cell: (a) => a.assigned.length,
-        },
-        {
-            key: "active",
-            header: "Active",
-            align: "center",
-            accessor: (a) => (a.active ? 1 : 0),
-            cell: (a) => (
-                <div className="flex justify-center">
-                    <Toggle
-                        checked={a.active}
-                        onChange={() => toggleActive(a)}
-                        label={`Toggle ${a.name}`}
-                    />
-                </div>
-            ),
+            key: "assigned_count",
+            header: "Internships",
+            cellClassName: "tabular-nums text-[#5b616e]",
         },
     ];
-
-    function toggleActive(a) {
-        setAssessors((prev) =>
-            prev.map((x) =>
-                x.id === a.id ? { ...x, active: !x.active } : x
-            )
-        );
-    }
-
-    function openReset(a) {
-        setResetTarget(a);
-        setResetPassword(generatePassword());
-    }
 
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
             <div className="mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-16">
-                {/* Header */}
                 <div className="flex items-end justify-between gap-4">
                     <div>
                         <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                            Accounts
+                            User Accounts
                         </p>
                         <h1 className="mt-3 text-[56px] font-medium leading-[1] tracking-[-0.03em] text-[#0a0b0d] md:text-[72px]">
                             Assessors
@@ -570,29 +324,14 @@ export default function AssessorsPage() {
                     </Button>
                 </div>
 
-                {/* Stats */}
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                        <StatChip
-                            label="Total Assessors"
-                            value={stats.total}
-                            icon={UserGear}
-                        />
-                        <StatChip
-                            label="Active Accounts"
-                            value={stats.active}
-                            icon={Pulse}
-                        />
-                        <StatChip
-                            label="Supervisors"
-                            value={stats.supervisors}
-                            icon={Users}
-                        />
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <StatChip label="Assessor Accounts" value={assessors.length} icon={UserGear} />
+                        <StatChip label="Authorized Role" value="Assessor" icon={Users} />
                     </div>
                 </section>
 
-                {/* Filter bar */}
-                <section className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_220px_220px]">
+                <section className="mt-12">
                     <div className="relative">
                         <MagnifyingGlass
                             size={18}
@@ -600,285 +339,142 @@ export default function AssessorsPage() {
                             className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[#5b616e]"
                         />
                         <Input
-                            placeholder="Search by name or email"
+                            placeholder="Search by username"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(event) => setSearch(event.target.value)}
                             className="pl-12"
                         />
                     </div>
-                    <Dropdown
-                        value={deptFilter}
-                        onChange={setDeptFilter}
-                        options={["All", ...DEPARTMENTS].map((d) => ({
-                            value: d,
-                            label: d === "All" ? "All Departments" : d,
-                        }))}
-                    />
-                    <Dropdown
-                        value={roleFilter}
-                        onChange={setRoleFilter}
-                        options={["All", ...ROLES].map((r) => ({
-                            value: r,
-                            label: r === "All" ? "All Roles" : r,
-                        }))}
-                    />
                 </section>
 
-                {/* Table */}
+                {error && (
+                    <p className="mt-6 text-[14px] font-semibold text-[#c9182e]">
+                        Failed to load assessors: {error.message}
+                    </p>
+                )}
+
                 <section className="mt-6">
                     <DataTable
                         columns={columns}
                         rows={filtered}
-                        rowKey={(a) => a.id}
-                        inactiveRow={(a) => !a.active}
+                        rowKey={(assessor) => assessor.user_id}
                         emptyMessage={
-                            isFiltered
-                                ? "No assessors match your filters."
-                                : "No assessors yet."
+                            loading
+                                ? "Loading assessors..."
+                                : search
+                                  ? "No assessors match your search."
+                                  : "No assessors yet."
                         }
-                        filteredAway={isFiltered}
-                        onClearFilters={clearFilters}
-                        onRowActivate={setViewTarget}
+                        filteredAway={search !== ""}
+                        onClearFilters={() => setSearch("")}
+                        onRowActivate={openEdit}
                         onEdit={openEdit}
                         onDelete={setDeleteTarget}
-                        selectable
-                        bulkActions={[
-                            {
-                                label: "Deactivate",
-                                onClick: bulkDeactivate,
-                            },
-                            {
-                                label: "Delete (no students)",
-                                variant: "danger",
-                                onClick: bulkDelete,
-                            },
-                        ]}
-                        totalLabel={(shown) =>
-                            `Showing ${shown} of ${assessors.length}`
-                        }
+                        rowActions={(assessor) => (
+                            <button
+                                type="button"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    openReset(assessor);
+                                }}
+                                className="inline-flex items-center rounded-full border border-[rgba(91,97,110,0.3)] bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
+                            >
+                                Reset
+                            </button>
+                        )}
+                        totalLabel={(shown) => `Showing ${shown} of ${assessors.length}`}
                     />
                 </section>
             </div>
 
-            {/* Add Modal */}
-            <Modal open={addOpen} size="lg">
+            <Modal open={addOpen}>
                 <ModalHeader>
                     <ModalTitle>Add Assessor</ModalTitle>
                     <ModalDescription>
-                        Create a sign-in account for a new lecturer or industry
-                        supervisor.
+                        Create a Users table account with the Assessor role.
                     </ModalDescription>
                 </ModalHeader>
                 <ModalContent>
-                    <AssessorForm
-                        form={form}
-                        setForm={setForm}
-                        errors={errors}
-                        mode="add"
-                    />
-                </ModalContent>
-                <ModalFooter>
-                    <Button variant="secondary" onClick={closeAll}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={submitAdd}>
-                        Create Account
-                    </Button>
-                </ModalFooter>
-            </Modal>
-
-            {/* Edit Modal */}
-            <Modal open={!!editTarget} size="lg">
-                <ModalHeader>
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <ModalTitle>Edit Assessor</ModalTitle>
-                            <ModalDescription>
-                                Update profile for{" "}
-                                <span className="font-semibold text-[#0a0b0d]">
-                                    {editTarget?.name}
-                                </span>
-                                .
-                            </ModalDescription>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => openReset(editTarget)}
-                            className="shrink-0 rounded-full border border-[rgba(91,97,110,0.2)] px-4 py-2 text-[13px] font-semibold text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
-                        >
-                            Reset Password
-                        </button>
-                    </div>
-                </ModalHeader>
-                <ModalContent>
-                    <AssessorForm
-                        form={form}
-                        setForm={setForm}
-                        errors={errors}
-                        mode="edit"
-                    />
-                </ModalContent>
-                <ModalFooter>
-                    <Button variant="secondary" onClick={closeAll}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={submitEdit}>
-                        Save Changes
-                    </Button>
-                </ModalFooter>
-            </Modal>
-
-            {/* View Assigned Students */}
-            <Modal open={!!viewTarget}>
-                <ModalHeader>
-                    <ModalTitle>Assigned Students</ModalTitle>
-                    <ModalDescription>
-                        {viewTarget?.assigned.length || 0} student
-                        {viewTarget?.assigned.length === 1 ? "" : "s"} under{" "}
-                        <span className="font-semibold text-[#0a0b0d]">
-                            {viewTarget?.name}
-                        </span>
-                        .
-                    </ModalDescription>
-                </ModalHeader>
-                <ModalContent>
-                    {viewTarget?.assigned.length ? (
-                        <ul className="divide-y divide-[rgba(91,97,110,0.2)] overflow-hidden rounded-[16px] border border-[rgba(91,97,110,0.2)]">
-                            {viewTarget.assigned.map((s, i) => (
-                                <li
-                                    key={s}
-                                    className="flex items-center gap-4 px-5 py-3"
-                                >
-                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eef0f3] text-[13px] font-semibold tabular-nums text-[#5b616e]">
-                                        {i + 1}
-                                    </span>
-                                    <span className="text-[15px] font-semibold text-[#0a0b0d]">
-                                        {s}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="rounded-[16px] border border-dashed border-[rgba(91,97,110,0.3)] px-5 py-8 text-center text-[14px] text-[#5b616e]">
-                            No students currently assigned.
-                        </p>
+                    <AssessorForm form={form} setForm={setForm} errors={errors} mode="add" />
+                    {submitError && (
+                        <p className="mt-3 text-[13px] font-semibold text-[#c9182e]">{submitError}</p>
                     )}
                 </ModalContent>
                 <ModalFooter>
-                    <Button variant="secondary" onClick={closeAll}>
-                        Close
+                    <Button variant="secondary" onClick={closeAll} disabled={submitting}>Cancel</Button>
+                    <Button variant="primary" onClick={submitAdd} disabled={submitting}>
+                        {submitting ? "Creating..." : "Create Account"}
                     </Button>
                 </ModalFooter>
             </Modal>
 
-            {/* Reset Password */}
+            <Modal open={!!editTarget}>
+                <ModalHeader>
+                    <ModalTitle>Edit Assessor</ModalTitle>
+                    <ModalDescription>
+                        Update the username stored for this assessor account.
+                    </ModalDescription>
+                </ModalHeader>
+                <ModalContent>
+                    <AssessorForm form={form} setForm={setForm} errors={errors} mode="edit" />
+                    {submitError && (
+                        <p className="mt-3 text-[13px] font-semibold text-[#c9182e]">{submitError}</p>
+                    )}
+                </ModalContent>
+                <ModalFooter>
+                    <Button variant="secondary" onClick={closeAll} disabled={submitting}>Cancel</Button>
+                    <Button variant="primary" onClick={submitEdit} disabled={submitting}>
+                        {submitting ? "Saving..." : "Save Changes"}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
             <Modal open={!!resetTarget}>
                 <ModalHeader>
                     <ModalTitle>Reset Password</ModalTitle>
                     <ModalDescription>
-                        A new password has been generated for{" "}
-                        <span className="font-semibold text-[#0a0b0d]">
-                            {resetTarget?.name}
-                        </span>
-                        . Share it securely — they&apos;ll be prompted to change it
-                        on next sign-in.
+                        Generate a temporary password for {resetTarget?.username}.
                     </ModalDescription>
                 </ModalHeader>
                 <ModalContent>
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-[#eef0f3] px-5 py-3 font-mono text-[16px] text-[#0a0b0d] break-all">
-                            {resetPassword}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() =>
-                                navigator.clipboard
-                                    ?.writeText(resetPassword)
-                                    .catch(() => {})
-                            }
-                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] bg-[#0a0b0d] text-white transition-colors hover:bg-[#282b31]"
-                            aria-label="Copy password"
-                        >
-                            <Copy size={16} weight="bold" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setResetPassword(generatePassword())}
-                            className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-white text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
-                            aria-label="Generate new"
-                        >
-                            <ArrowsClockwise size={16} weight="bold" />
-                        </button>
+                    <div className="rounded-[24px] border border-[rgba(91,97,110,0.2)] bg-[#eef0f3] px-5 py-3 font-mono text-[16px] text-[#0a0b0d] break-all">
+                        {resetPassword}
                     </div>
+                    {submitError && (
+                        <p className="mt-3 text-[13px] font-semibold text-[#c9182e]">{submitError}</p>
+                    )}
                 </ModalContent>
                 <ModalFooter>
                     <Button
-                        variant="primary"
-                        onClick={() => setResetTarget(null)}
+                        variant="secondary"
+                        onClick={() => setResetPassword(generatePassword())}
+                        disabled={submitting}
                     >
-                        Done
+                        Generate New
+                    </Button>
+                    <Button variant="primary" onClick={applyReset} disabled={submitting}>
+                        {submitting ? "Saving..." : "Save Password"}
                     </Button>
                 </ModalFooter>
             </Modal>
 
-            {/* Delete Modal */}
             <Modal open={!!deleteTarget}>
                 <ModalHeader>
-                    <ModalTitle>
-                        {deleteTarget?.assigned.length
-                            ? "Cannot delete assessor"
-                            : "Delete assessor?"}
-                    </ModalTitle>
+                    <ModalTitle>Delete assessor?</ModalTitle>
                     <ModalDescription>
-                        {deleteTarget?.assigned.length ? (
-                            <>
-                                <span className="font-semibold text-[#0a0b0d]">
-                                    {deleteTarget.name}
-                                </span>{" "}
-                                has{" "}
-                                <span className="font-semibold text-[#0a0b0d]">
-                                    {deleteTarget.assigned.length} assigned
-                                    student
-                                    {deleteTarget.assigned.length === 1
-                                        ? ""
-                                        : "s"}
-                                </span>
-                                . Reassign their students to another assessor
-                                first, or deactivate this account to preserve
-                                assessment records.
-                            </>
-                        ) : (
-                            <>
-                                This permanently removes{" "}
-                                <span className="font-semibold text-[#0a0b0d]">
-                                    {deleteTarget?.name}
-                                </span>{" "}
-                                ({deleteTarget?.id}) and their account.
-                            </>
-                        )}
+                        This removes {deleteTarget?.username} from the Users table.
                     </ModalDescription>
                 </ModalHeader>
-                <ModalFooter>
-                    <Button variant="secondary" onClick={closeAll}>
-                        {deleteTarget?.assigned.length ? "Close" : "Cancel"}
-                    </Button>
-                    {deleteTarget?.assigned.length ? (
-                        <Button
-                            variant="dark"
-                            onClick={() => {
-                                toggleActive(deleteTarget);
-                                closeAll();
-                            }}
-                        >
-                            {deleteTarget.active
-                                ? "Deactivate Instead"
-                                : "Already Deactivated"}
-                        </Button>
-                    ) : (
-                        <Button variant="dark" onClick={confirmDelete}>
-                            Delete Permanently
-                        </Button>
+                <ModalContent>
+                    {submitError && (
+                        <p className="text-[13px] font-semibold text-[#c9182e]">{submitError}</p>
                     )}
+                </ModalContent>
+                <ModalFooter>
+                    <Button variant="secondary" onClick={closeAll} disabled={submitting}>Cancel</Button>
+                    <Button variant="dark" onClick={confirmDelete} disabled={submitting}>
+                        {submitting ? "Deleting..." : "Delete"}
+                    </Button>
                 </ModalFooter>
             </Modal>
         </main>

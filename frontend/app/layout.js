@@ -1,6 +1,6 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import AdminSidebar from "@/components/admin-sidebar";
+import AppShell from "@/components/app-shell";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
     variable: "--font-plus-jakarta-sans",
@@ -16,11 +16,10 @@ export default function RootLayout({ children }) {
     return (
         <html
             lang="en"
-            className={`${plusJakartaSans.variable}  h-full antialiased`}
+            className={`${plusJakartaSans.variable} h-full antialiased`}
         >
             <body className="h-screen overflow-hidden flex">
-                <AdminSidebar />
-                {children}
+                <AppShell>{children}</AppShell>
             </body>
         </html>
     );

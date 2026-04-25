@@ -5,7 +5,7 @@ export { default as SidebarItem } from "./sidebar-item";
 export function Sidebar({ children, className = "", ...props }) {
     return (
         <aside
-            className={`group flex h-screen w-[72px] flex-col overflow-hidden bg-[#0052ff] text-white transition-all duration-300 hover:w-[220px] focus-within:w-[220px] lg:w-[220px] ${className}`}
+            className={`group flex h-screen w-[72px] flex-col overflow-hidden bg-[#0052ff] text-white transition-all duration-300 hover:w-[220px] focus-within:w-[220px] ${className}`}
             {...props}
         >
             {children}
@@ -13,19 +13,17 @@ export function Sidebar({ children, className = "", ...props }) {
     );
 }
 
-export function SidebarHeader({ className = "", ...props }) {
+export function SidebarHeader({ children, className = "", ...props }) {
     return (
         <div
-            className={`flex h-16 items-center justify-center px-4 transition-all duration-200 group-hover:justify-start group-focus-within:justify-start lg:justify-start ${className}`}
+            className={`flex h-16 items-center justify-center px-4 transition-all duration-200 group-hover:justify-start group-focus-within:justify-start ${className}`}
             {...props}
         >
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[#0052ff]">
                 <Circle size={18} weight="fill" />
             </div>
 
-            <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap text-[18px] font-semibold opacity-0 transition-all duration-200 group-hover:ml-3 group-hover:max-w-[180px] group-hover:opacity-100 group-focus-within:ml-3 group-focus-within:max-w-[180px] group-focus-within:opacity-100 lg:ml-3 lg:max-w-[180px] lg:opacity-100">
-                Admin Portal
-            </span>
+            {children}
         </div>
     );
 }
@@ -33,7 +31,7 @@ export function SidebarHeader({ className = "", ...props }) {
 export function SidebarTitle({ children, className = "", ...props }) {
     return (
         <span
-            className={`whitespace-nowrap text-[18px] font-semibold opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 lg:opacity-100 ${className}`}
+            className={`ml-0 max-w-0 overflow-hidden whitespace-nowrap text-[18px] font-semibold opacity-0 transition-all duration-200 group-hover:ml-3 group-hover:max-w-[180px] group-hover:opacity-100 group-focus-within:ml-3 group-focus-within:max-w-[180px] group-focus-within:opacity-100 ${className}`}
             {...props}
         >
             {children}
@@ -60,7 +58,7 @@ export function SidebarGroup({ children, className = "", ...props }) {
 export function SidebarGroupLabel({ children, className = "", ...props }) {
     return (
         <div
-            className={`mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 lg:opacity-100 ${className}`}
+            className={`mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 ${className}`}
             {...props}
         >
             {children}

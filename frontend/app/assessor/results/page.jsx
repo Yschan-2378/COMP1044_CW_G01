@@ -3,13 +3,9 @@
 import { useMemo, useState } from "react";
 import { DownloadSimple } from "@phosphor-icons/react/dist/icons/DownloadSimple";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/icons/MagnifyingGlass";
-import { ClipboardText } from "@phosphor-icons/react/dist/icons/ClipboardText";
-import { ChartBar } from "@phosphor-icons/react/dist/icons/ChartBar";
-import { Users } from "@phosphor-icons/react/dist/icons/Users";
 
 import Button from "@/components/button";
 import Input from "@/components/input";
-import Dropdown from "@/components/dropdown";
 import { DataTable } from "@/components/data-table";
 import {
     Modal,
@@ -19,40 +15,33 @@ import {
     ModalHeader,
     ModalTitle,
 } from "@/components/modal";
-import { useApi } from "@/lib/use-api";
+import { PageState, useAssessorData } from "../use-assessor-data";
 
 const CRITERIA = [
-    { key: "task_mark",        label: "Undertaking Tasks/Projects",                  weight: 10 },
-    { key: "safety_mark",      label: "Health and Safety Requirements",              weight: 10 },
-    { key: "knowledge_mark",   label: "Connectivity and Use of Theoretical Knowledge", weight: 10 },
-    { key: "report_mark",      label: "Presentation of the Report",                  weight: 15 },
-    { key: "clarity_mark",     label: "Clarity of Language and Illustration",        weight: 10 },
-    { key: "learning_mark",    label: "Lifelong Learning Activities",                weight: 15 },
-    { key: "project_mgt_mark", label: "Project Management",                          weight: 15 },
-    { key: "time_mgt_mark",    label: "Time Management",                             weight: 15 },
+    { key: "task_mark", label: "Undertaking Tasks/Projects", weight: 10 },
+    { key: "safety_mark", label: "Health and Safety Requirements", weight: 10 },
+    { key: "knowledge_mark", label: "Connectivity and Use of Theoretical Knowledge", weight: 10 },
+    { key: "report_mark", label: "Presentation of the Report", weight: 15 },
+    { key: "clarity_mark", label: "Clarity of Language and Illustration", weight: 10 },
+    { key: "learning_mark", label: "Lifelong Learning Activities", weight: 15 },
+    { key: "project_mgt_mark", label: "Project Management", weight: 15 },
+    { key: "time_mgt_mark", label: "Time Management", weight: 15 },
 ];
 
-function asNumber(value) {
-    const num = Number(value);
-    return Number.isFinite(num) ? num : 0;
-}
-
-function formatScore(score) {
-    return `${asNumber(score).toFixed(2)}%`;
+function formatScore(value) {
+    if (value == null) return "-";
+    return `${Number(value).toFixed(2)}%`;
 }
 
 function downloadCsv(rows) {
     const header = [
-        "Assessment ID",
-        "Internship ID",
         "Student ID",
         "Student Name",
         "Programme",
-        "Company Name",
-        "Assessor Username",
+        "Company",
         ...CRITERIA.map((criterion) => `${criterion.label} (${criterion.weight}%)`),
-        "Qualitative Comments",
-        "Final Calculated Score",
+        "Comments",
+        "Final Score",
     ];
 
     const escape = (value) => {
@@ -66,16 +55,13 @@ function downloadCsv(rows) {
         header.map(escape).join(","),
         ...rows.map((row) =>
             [
-                row.assessment_id,
-                row.internship_id,
                 row.student_id,
                 row.student_name,
                 row.programme,
                 row.company_name,
-                row.assessor_username,
                 ...CRITERIA.map((criterion) => row[criterion.key]),
                 row.qualitative_comments,
-                asNumber(row.final_calculated_score).toFixed(2),
+                row.final_calculated_score,
             ]
                 .map(escape)
                 .join(","),
@@ -86,29 +72,11 @@ function downloadCsv(rows) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `internship-results-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `my-results-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-}
-
-function StatChip({ label, value, icon: Icon }) {
-    return (
-        <div className="flex items-center gap-4 rounded-[20px] bg-[#eef0f3] px-6 py-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#0a0b0d]">
-                <Icon size={18} weight="bold" />
-            </div>
-            <div>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                    {label}
-                </p>
-                <p className="mt-1 text-[28px] font-semibold leading-[1] text-[#0a0b0d] tabular-nums">
-                    {value}
-                </p>
-            </div>
-        </div>
-    );
 }
 
 function BreakdownTable({ result }) {
@@ -121,7 +89,7 @@ function BreakdownTable({ result }) {
                 <span className="text-right">Weighted</span>
             </div>
             {CRITERIA.map((criterion) => {
-                const mark = asNumber(result[criterion.key]);
+                const mark = Number(result[criterion.key]);
                 const weighted = (mark * criterion.weight) / 100;
                 return (
                     <div
@@ -135,7 +103,7 @@ function BreakdownTable({ result }) {
                             {criterion.weight}%
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
-                            {mark}
+                            {mark.toFixed(2)}
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
                             {weighted.toFixed(2)}
@@ -143,71 +111,33 @@ function BreakdownTable({ result }) {
                     </div>
                 );
             })}
-            <div className="grid grid-cols-[minmax(0,1fr)_80px_80px_96px] items-center gap-3 bg-[#0052ff] px-5 py-4 text-white">
-                <span className="text-[13px] font-bold uppercase tracking-[0.12em]">
-                    Final Score
-                </span>
-                <span className="text-right text-[14px] tabular-nums opacity-70">100%</span>
-                <span />
-                <span className="text-right text-[20px] font-semibold leading-none tabular-nums">
-                    {asNumber(result.final_calculated_score).toFixed(2)}
-                </span>
-            </div>
         </div>
     );
 }
 
-export default function ResultsPage() {
-    const { data, loading, error } = useApi("/results.php");
-    const allRows = data?.results ?? [];
-
+export default function AssessorResultsPage() {
+    const { data, loading, error } = useAssessorData("/results.php");
     const [search, setSearch] = useState("");
-    const [assessorFilter, setAssessorFilter] = useState("All");
     const [viewTarget, setViewTarget] = useState(null);
-
-    const rows = useMemo(
-        () => allRows.filter((row) => row.assessment_id != null),
-        [allRows],
-    );
-
-    const assessorOptions = useMemo(() => {
-        const usernames = Array.from(
-            new Set(rows.map((row) => row.assessor_username).filter(Boolean)),
-        ).sort();
-        return ["All", ...usernames];
-    }, [rows]);
+    const results = (data?.results || []).filter((row) => row.assessment_id);
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return rows.filter((row) => {
-            if (assessorFilter !== "All" && row.assessor_username !== assessorFilter) {
-                return false;
-            }
-            if (
-                query &&
-                !(row.student_name || "").toLowerCase().includes(query) &&
-                !row.student_id.toLowerCase().includes(query)
-            ) {
-                return false;
-            }
-            return true;
-        });
-    }, [rows, search, assessorFilter]);
+        if (!query) return results;
 
-    const average = rows.length
-        ? rows.reduce((sum, row) => sum + asNumber(row.final_calculated_score), 0) / rows.length
-        : 0;
+        return results.filter(
+            (row) =>
+                row.student_id.toLowerCase().includes(query) ||
+                row.student_name.toLowerCase().includes(query) ||
+                row.company_name.toLowerCase().includes(query),
+        );
+    }, [results, search]);
 
     const columns = [
-        {
-            key: "assessment_id",
-            header: "Assessment ID",
-            cellClassName: "font-semibold tabular-nums",
-        },
         { key: "student_id", header: "Student ID", cellClassName: "font-semibold tabular-nums" },
         {
             key: "student_name",
-            header: "Student Name",
+            header: "Student",
             cell: (row) => (
                 <div>
                     <p className="font-semibold text-[#0a0b0d]">{row.student_name}</p>
@@ -215,8 +145,7 @@ export default function ResultsPage() {
                 </div>
             ),
         },
-        { key: "company_name", header: "Company Name" },
-        { key: "assessor_username", header: "Assessor" },
+        { key: "company_name", header: "Company" },
         {
             key: "final_calculated_score",
             header: "Final Score",
@@ -225,8 +154,6 @@ export default function ResultsPage() {
             cell: (row) => formatScore(row.final_calculated_score),
         },
     ];
-
-    const isFiltered = search !== "" || assessorFilter !== "All";
 
     return (
         <main className="flex-1 min-w-0 h-screen overflow-y-auto bg-white">
@@ -237,7 +164,7 @@ export default function ResultsPage() {
                             Assessment Records
                         </p>
                         <h1 className="mt-3 text-[56px] font-medium leading-[1] tracking-[-0.03em] text-[#0a0b0d] md:text-[72px]">
-                            Results
+                            My Results
                         </h1>
                     </div>
                     <Button variant="secondary" onClick={() => downloadCsv(filtered)}>
@@ -247,18 +174,6 @@ export default function ResultsPage() {
                 </div>
 
                 <section className="mt-12">
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                        <StatChip label="Assessments" value={rows.length} icon={ClipboardText} />
-                        <StatChip
-                            label="Students Graded"
-                            value={new Set(rows.map((row) => row.student_id)).size}
-                            icon={Users}
-                        />
-                        <StatChip label="Average Score" value={formatScore(average)} icon={ChartBar} />
-                    </div>
-                </section>
-
-                <section className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
                     <div className="relative">
                         <MagnifyingGlass
                             size={18}
@@ -266,68 +181,49 @@ export default function ResultsPage() {
                             className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[#5b616e]"
                         />
                         <Input
-                            placeholder="Search student ID or name"
+                            placeholder="Search student ID, name, or company"
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             className="pl-12"
                         />
                     </div>
-                    <Dropdown
-                        value={assessorFilter}
-                        onChange={setAssessorFilter}
-                        options={assessorOptions.map((assessor) => ({
-                            value: assessor,
-                            label: assessor === "All" ? "All Assessors" : assessor,
-                        }))}
-                    />
                 </section>
 
-                {error && (
-                    <p className="mt-6 text-[14px] font-semibold text-[#c9182e]">
-                        Failed to load results: {error.message}
-                    </p>
-                )}
-
                 <section className="mt-6">
-                    <DataTable
-                        columns={columns}
-                        rows={filtered}
-                        rowKey={(row) => row.assessment_id}
-                        emptyMessage={
-                            loading
-                                ? "Loading results..."
-                                : isFiltered
-                                  ? "No results match your filters."
-                                  : "No assessments recorded yet."
-                        }
-                        filteredAway={isFiltered}
-                        onClearFilters={() => {
-                            setSearch("");
-                            setAssessorFilter("All");
-                        }}
-                        onRowActivate={setViewTarget}
-                        rowActions={(row) => (
-                            <button
-                                type="button"
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    setViewTarget(row);
-                                }}
-                                className="inline-flex items-center rounded-full border border-[rgba(91,97,110,0.3)] bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0a0b0d] transition-colors hover:bg-[#eef0f3]"
-                            >
-                                View
-                            </button>
-                        )}
-                        totalLabel={(shown) => `Showing ${shown} of ${rows.length}`}
-                    />
+                    <PageState loading={loading} error={error} empty={!results.length}>
+                        <DataTable
+                            columns={columns}
+                            rows={filtered}
+                            rowKey={(row) => row.assessment_id}
+                            emptyMessage={
+                                search ? "No results match your search." : "No graded results yet."
+                            }
+                            filteredAway={search !== ""}
+                            onClearFilters={() => setSearch("")}
+                            onRowActivate={setViewTarget}
+                            rowActions={(row) => (
+                                <Button
+                                    variant="secondary"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setViewTarget(row);
+                                    }}
+                                    className="px-4 py-1.5 text-[13px]"
+                                >
+                                    View
+                                </Button>
+                            )}
+                            totalLabel={(shown) => `Showing ${shown} of ${results.length}`}
+                        />
+                    </PageState>
                 </section>
             </div>
 
             <Modal open={!!viewTarget} size="lg">
                 <ModalHeader>
-                    <ModalTitle>Assessment Breakdown</ModalTitle>
+                    <ModalTitle>Result Breakdown</ModalTitle>
                     <ModalDescription>
-                        Marks, comments, and final calculated score for {viewTarget?.student_name}.
+                        Full assessment for {viewTarget?.student_name}.
                     </ModalDescription>
                 </ModalHeader>
                 <ModalContent>
@@ -336,10 +232,10 @@ export default function ResultsPage() {
                             <div className="grid grid-cols-1 gap-3 rounded-[20px] border border-[rgba(91,97,110,0.2)] bg-[#f8f9fb] px-5 py-4 md:grid-cols-3">
                                 <div>
                                     <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                                        Internship ID
+                                        Student
                                     </p>
                                     <p className="mt-1 text-[15px] font-semibold text-[#0a0b0d]">
-                                        {viewTarget.internship_id}
+                                        {viewTarget.student_name}
                                     </p>
                                 </div>
                                 <div>
@@ -352,22 +248,20 @@ export default function ResultsPage() {
                                 </div>
                                 <div>
                                     <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                                        Assessor
+                                        Final Score
                                     </p>
                                     <p className="mt-1 text-[15px] font-semibold text-[#0a0b0d]">
-                                        {viewTarget.assessor_username}
+                                        {formatScore(viewTarget.final_calculated_score)}
                                     </p>
                                 </div>
                             </div>
-
                             <BreakdownTable result={viewTarget} />
-
                             <div>
                                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
                                     Qualitative Comments
                                 </p>
-                                <p className="mt-2 max-w-[72ch] text-[15px] leading-[1.6] text-[#0a0b0d]">
-                                    {viewTarget.qualitative_comments}
+                                <p className="mt-2 text-[15px] leading-[1.6] text-[#0a0b0d]">
+                                    {viewTarget.qualitative_comments || "-"}
                                 </p>
                             </div>
                         </div>

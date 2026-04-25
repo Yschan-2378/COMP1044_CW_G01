@@ -25,12 +25,15 @@ if ($method === 'POST') {
     $data = read_json_body();
     require_fields($data, ['username', 'password']);
 
-    $hashed_password = password_hash((string) $data['password'], PASSWORD_DEFAULT);
+    $username = validate_string($data['username'], 'username', 50, 3, '/^[A-Za-z0-9_.-]+$/');
+    $password = validate_string($data['password'], 'password', 100, 8);
+
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $pdo->prepare(
         "INSERT INTO Users (username, password_hash, role)
          VALUES (?, ?, 'Assessor')"
     );
-    $stmt->execute([trim((string) $data['username']), $hashed_password]);
+    $stmt->execute([$username, $hashed_password]);
 
     json_response([
         'message' => 'Assessor account created.',
@@ -43,27 +46,25 @@ if ($method === 'PUT') {
     $data = read_json_body();
     require_fields($data, ['user_id', 'username']);
 
-    if (isset($data['password']) && trim((string) $data['password']) !== '') {
+    $user_id = validate_int($data['user_id'], 'user_id', 1);
+    $username = validate_string($data['username'], 'username', 50, 3, '/^[A-Za-z0-9_.-]+$/');
+    $hasPassword = isset($data['password']) && trim((string) $data['password']) !== '';
+
+    if ($hasPassword) {
+        $password = validate_string($data['password'], 'password', 100, 8);
         $stmt = $pdo->prepare(
             "UPDATE Users
              SET username = ?, password_hash = ?
              WHERE user_id = ? AND role = 'Assessor'"
         );
-        $stmt->execute([
-            trim((string) $data['username']),
-            password_hash((string) $data['password'], PASSWORD_DEFAULT),
-            (int) $data['user_id'],
-        ]);
+        $stmt->execute([$username, password_hash($password, PASSWORD_DEFAULT), $user_id]);
     } else {
         $stmt = $pdo->prepare(
             "UPDATE Users
              SET username = ?
              WHERE user_id = ? AND role = 'Assessor'"
         );
-        $stmt->execute([
-            trim((string) $data['username']),
-            (int) $data['user_id'],
-        ]);
+        $stmt->execute([$username, $user_id]);
     }
 
     if ($stmt->rowCount() === 0) {
@@ -76,10 +77,7 @@ if ($method === 'PUT') {
 if ($method === 'DELETE') {
     require_role('Admin');
     $data = read_json_body();
-    $user_id = (int) ($data['user_id'] ?? $_GET['user_id'] ?? 0);
-    if ($user_id <= 0) {
-        json_response(['error' => 'Missing required field: user_id.'], 400);
-    }
+    $user_id = validate_int($data['user_id'] ?? $_GET['user_id'] ?? 0, 'user_id', 1);
 
     $stmt = $pdo->prepare("DELETE FROM Users WHERE user_id = ? AND role = 'Assessor'");
     $stmt->execute([$user_id]);

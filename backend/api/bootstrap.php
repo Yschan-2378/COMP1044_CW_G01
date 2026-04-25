@@ -33,14 +33,16 @@ session_set_cookie_params([
 ]);
 session_start();
 
-require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/db.php';
 
 set_exception_handler(function (Throwable $exception): void {
-    $message = $exception instanceof PDOException
-        ? 'Database error: ' . $exception->getMessage()
-        : 'Server error: ' . $exception->getMessage();
+    error_log('[api] ' . $exception::class . ': ' . $exception->getMessage());
 
-    json_response(['error' => $message], 500);
+    if ($exception instanceof PDOException && ($exception->errorInfo[1] ?? null) === 1062) {
+        json_response(['error' => 'A record with these details already exists.'], 409);
+    }
+
+    json_response(['error' => 'Server error. Please try again later.'], 500);
 });
 
 function json_response(array $payload, int $status = 200): void
@@ -100,11 +102,67 @@ function require_role(string $role): array
 
 function require_fields(array $data, array $fields): void
 {
+    $errors = [];
     foreach ($fields as $field) {
         if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
-            json_response(['error' => "Missing required field: $field."], 400);
+            $errors[$field] = "$field is required.";
         }
     }
+    if ($errors) {
+        validation_error($errors);
+    }
+}
+
+function validation_error(array $errors): void
+{
+    json_response([
+        'error' => 'Validation failed.',
+        'fields' => $errors,
+    ], 422);
+}
+
+function validate_string($value, string $field, int $maxLen, int $minLen = 1, ?string $pattern = null): string
+{
+    if (!is_string($value) && !is_numeric($value)) {
+        validation_error([$field => "$field must be a string."]);
+    }
+    $trimmed = trim((string) $value);
+    $len = mb_strlen($trimmed);
+    if ($len < $minLen) {
+        validation_error([$field => "$field must be at least $minLen character(s)."]);
+    }
+    if ($len > $maxLen) {
+        validation_error([$field => "$field must be at most $maxLen characters."]);
+    }
+    if ($pattern !== null && !preg_match($pattern, $trimmed)) {
+        validation_error([$field => "$field has an invalid format."]);
+    }
+    return $trimmed;
+}
+
+function validate_int($value, string $field, ?int $min = null, ?int $max = null): int
+{
+    if (!is_numeric($value) || (int) $value != $value) {
+        validation_error([$field => "$field must be an integer."]);
+    }
+    $int = (int) $value;
+    if ($min !== null && $int < $min) {
+        validation_error([$field => "$field must be at least $min."]);
+    }
+    if ($max !== null && $int > $max) {
+        validation_error([$field => "$field must be at most $max."]);
+    }
+    return $int;
+}
+
+function validate_enum($value, string $field, array $allowed): string
+{
+    $str = is_string($value) ? $value : '';
+    if (!in_array($str, $allowed, true)) {
+        $list = implode(', ', $allowed);
+        validation_error([$field => "$field must be one of: $list."]);
+    }
+    return $str;
 }
 
 function method_not_allowed(): void
@@ -115,12 +173,12 @@ function method_not_allowed(): void
 function normalize_decimal($value, string $field): float
 {
     if (!is_numeric($value)) {
-        json_response(['error' => "$field must be numeric."], 400);
+        validation_error([$field => "$field must be numeric."]);
     }
 
     $number = (float) $value;
     if ($number < 0 || $number > 100) {
-        json_response(['error' => "$field must be between 0 and 100."], 400);
+        validation_error([$field => "$field must be between 0 and 100."]);
     }
 
     return $number;
