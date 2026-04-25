@@ -127,7 +127,7 @@ function validate_string($value, string $field, int $maxLen, int $minLen = 1, ?s
         validation_error([$field => "$field must be a string."]);
     }
     $trimmed = trim((string) $value);
-    $len = mb_strlen($trimmed);
+    $len = strlen($trimmed);
     if ($len < $minLen) {
         validation_error([$field => "$field must be at least $minLen character(s)."]);
     }

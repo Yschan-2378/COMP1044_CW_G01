@@ -17,7 +17,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     require_auth();
 
-    $search = mb_substr(trim((string) ($_GET['search'] ?? '')), 0, 100);
+    $search = substr(trim((string) ($_GET['search'] ?? '')), 0, 100);
     if ($search !== '') {
         $stmt = $pdo->prepare(
             'SELECT student_id, student_name, programme
