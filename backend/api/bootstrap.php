@@ -177,10 +177,12 @@ function normalize_decimal($value, string $field): float
     }
 
     $number = (float) $value;
-    if ($number < 0 || $number > 100) {
+    $tolerance = 0.000000001;
+    if ($number < (0 - $tolerance) || $number > (100 + $tolerance)) {
         validation_error([$field => "$field must be between 0 and 100."]);
     }
 
-    return $number;
+    $rounded = round($number + $tolerance, 2);
+    return min(100.0, max(0.0, $rounded));
 }
 ?>

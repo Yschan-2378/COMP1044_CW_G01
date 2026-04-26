@@ -63,12 +63,48 @@ export default function LoginPage() {
                             className="absolute inset-0 h-full w-full"
                             preserveAspectRatio="xMidYMid slice"
                         >
-                            <circle cx="500" cy="0" r="80" stroke="rgba(255,255,255,0.1)" fill="none" />
-                            <circle cx="500" cy="0" r="160" stroke="rgba(255,255,255,0.1)" fill="none" />
-                            <circle cx="500" cy="0" r="240" stroke="rgba(255,255,255,0.1)" fill="none" />
-                            <circle cx="500" cy="0" r="320" stroke="rgba(255,255,255,0.1)" fill="none" />
-                            <circle cx="500" cy="0" r="420" stroke="rgba(255,255,255,0.1)" fill="none" />
-                            <circle cx="500" cy="0" r="540" stroke="rgba(255,255,255,0.1)" fill="none" />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="80"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="160"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="240"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="320"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="420"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
+                            <circle
+                                cx="500"
+                                cy="0"
+                                r="540"
+                                stroke="rgba(255,255,255,0.1)"
+                                fill="none"
+                            />
                         </svg>
                     </div>
 
@@ -79,7 +115,8 @@ export default function LoginPage() {
                             Sign in to keep things moving.
                         </h1>
                         <p className="mt-8 max-w-[42ch] text-[16px] leading-[1.56] text-white/80">
-                            Manage the student internship experience from a single place.
+                            Manage the student internship experience from a
+                            single place.
                         </p>
                     </div>
 
@@ -90,9 +127,6 @@ export default function LoginPage() {
 
                 <section className="flex items-center justify-center px-6 py-12 md:px-10 md:py-16">
                     <div className="w-full max-w-[440px]">
-                        <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#5b616e]">
-                            Welcome back
-                        </p>
                         <h2 className="mt-4 text-[44px] font-medium leading-[1.0] tracking-[-0.03em] text-[#0a0b0d] md:text-[56px]">
                             Log in.
                         </h2>
@@ -100,7 +134,10 @@ export default function LoginPage() {
                             Use your credentials to access the dashboard.
                         </p>
 
-                        <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-5">
+                        <form
+                            onSubmit={handleSubmit}
+                            className="mt-10 flex flex-col gap-5"
+                        >
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="username">Username</Label>
                                 <Input
@@ -110,7 +147,9 @@ export default function LoginPage() {
                                     autoComplete="username"
                                     placeholder="e.g. madams"
                                     value={username}
-                                    onChange={(event) => setUsername(event.target.value)}
+                                    onChange={(event) =>
+                                        setUsername(event.target.value)
+                                    }
                                     disabled={submitting}
                                 />
                             </div>
@@ -121,19 +160,27 @@ export default function LoginPage() {
                                     <Input
                                         id="password"
                                         name="password"
-                                        type={showPassword ? "text" : "password"}
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        }
                                         autoComplete="current-password"
                                         placeholder="Enter your password"
                                         value={password}
-                                        onChange={(event) => setPassword(event.target.value)}
+                                        onChange={(event) =>
+                                            setPassword(event.target.value)
+                                        }
                                         disabled={submitting}
                                         className="pr-12"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        onClick={() =>
+                                            setShowPassword((prev) => !prev)
+                                        }
                                         aria-label={
-                                            showPassword ? "Hide password" : "Show password"
+                                            showPassword
+                                                ? "Hide password"
+                                                : "Show password"
                                         }
                                         className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-[#5b616e] transition-colors hover:text-[#0a0b0d] focus:outline-none focus:ring-2 focus:ring-[#0052ff]"
                                     >
@@ -162,7 +209,9 @@ export default function LoginPage() {
                                 className="mt-2 w-full gap-2"
                             >
                                 {submitting ? "Signing in…" : "Sign in"}
-                                {!submitting && <ArrowRight size={18} weight="bold" />}
+                                {!submitting && (
+                                    <ArrowRight size={18} weight="bold" />
+                                )}
                             </Button>
                         </form>
                     </div>

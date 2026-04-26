@@ -49,8 +49,7 @@ function AppShell({ children }) {
                 setChecking(false);
             } catch (err) {
                 if (cancelled) return;
-                if (err.status === 401) router.replace("/login");
-                else setChecking(false);
+                router.replace("/login");
             }
         })();
 

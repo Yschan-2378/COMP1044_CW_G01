@@ -41,13 +41,19 @@ const CRITERIA = [
     { key: "time_mgt_mark",    label: "Time Management",                             weight: 15 },
 ];
 
+const DISPLAY_ROUNDING_TOLERANCE = 1e-9;
+
 function asNumber(value) {
     const num = Number(value);
     return Number.isFinite(num) ? num : 0;
 }
 
+function formatDecimal(value) {
+    return (Math.round((asNumber(value) + DISPLAY_ROUNDING_TOLERANCE) * 100) / 100).toFixed(2);
+}
+
 function formatScore(score) {
-    return `${asNumber(score).toFixed(2)}%`;
+    return `${formatDecimal(score)}%`;
 }
 
 function downloadCsv(rows) {
@@ -84,7 +90,7 @@ function downloadCsv(rows) {
                 row.assessor_username,
                 ...CRITERIA.map((criterion) => row[criterion.key]),
                 row.qualitative_comments,
-                asNumber(row.final_calculated_score).toFixed(2),
+                formatDecimal(row.final_calculated_score),
             ]
                 .map(escape)
                 .join(","),
@@ -187,10 +193,10 @@ function BreakdownTable({ result }) {
                             {criterion.weight}%
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
-                            {mark}
+                            {formatDecimal(mark)}
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
-                            {weighted.toFixed(2)}
+                            {formatDecimal(weighted)}
                         </span>
                     </div>
                 );
@@ -202,7 +208,7 @@ function BreakdownTable({ result }) {
                 <span className="text-right text-[14px] tabular-nums opacity-70">100%</span>
                 <span />
                 <span className="text-right text-[20px] font-semibold leading-none tabular-nums">
-                    {asNumber(result.final_calculated_score).toFixed(2)}
+                    {formatDecimal(result.final_calculated_score)}
                 </span>
             </div>
         </div>

@@ -37,14 +37,20 @@ const CRITERIA = [
     { key: "time_mgt_mark", label: "Time Management", weight: 15 },
 ];
 
+const DISPLAY_ROUNDING_TOLERANCE = 1e-9;
+
 function formatScore(value) {
     if (value == null) return "-";
-    return `${Number(value).toFixed(2)}%`;
+    return `${formatDecimal(value)}%`;
 }
 
 function asNumber(value) {
     const num = Number(value);
     return Number.isFinite(num) ? num : 0;
+}
+
+function formatDecimal(value) {
+    return (Math.round((asNumber(value) + DISPLAY_ROUNDING_TOLERANCE) * 100) / 100).toFixed(2);
 }
 
 function getScoreBand(score) {
@@ -127,7 +133,7 @@ function BreakdownTable({ result }) {
                 <span className="text-right">Weighted</span>
             </div>
             {CRITERIA.map((criterion) => {
-                const mark = Number(result[criterion.key]);
+                const mark = asNumber(result[criterion.key]);
                 const weighted = (mark * criterion.weight) / 100;
                 return (
                     <div
@@ -141,10 +147,10 @@ function BreakdownTable({ result }) {
                             {criterion.weight}%
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
-                            {mark.toFixed(2)}
+                            {formatDecimal(mark)}
                         </span>
                         <span className="text-right text-[15px] font-semibold text-[#0a0b0d] tabular-nums">
-                            {weighted.toFixed(2)}
+                            {formatDecimal(weighted)}
                         </span>
                     </div>
                 );

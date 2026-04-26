@@ -28,12 +28,16 @@ const EMPTY_MARKS = CRITERIA.reduce(
     {},
 );
 
+const DISPLAY_ROUNDING_TOLERANCE = 1e-9;
+
 function calculateScore(form) {
-    return CRITERIA.reduce((sum, criterion) => {
+    const score = CRITERIA.reduce((sum, criterion) => {
         const value = Number(form[criterion.key]);
         if (Number.isNaN(value)) return sum;
         return sum + (value * criterion.weight) / 100;
     }, 0);
+
+    return Math.round((score + DISPLAY_ROUNDING_TOLERANCE) * 100) / 100;
 }
 
 function FormField({ criterion, value, onChange, error }) {
