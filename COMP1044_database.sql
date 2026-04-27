@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS comp1044_internship_db;
+USE comp1044_internship_db;
+
 CREATE TABLE Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -45,6 +48,14 @@ CREATE TABLE Assessments (
             2
         )
     ) STORED,
+    CONSTRAINT chk_task_mark_range CHECK (task_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_safety_mark_range CHECK (safety_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_knowledge_mark_range CHECK (knowledge_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_report_mark_range CHECK (report_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_clarity_mark_range CHECK (clarity_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_learning_mark_range CHECK (learning_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_project_mgt_mark_range CHECK (project_mgt_mark BETWEEN 0 AND 100),
+    CONSTRAINT chk_time_mgt_mark_range CHECK (time_mgt_mark BETWEEN 0 AND 100),
     FOREIGN KEY (internship_id) REFERENCES Internships(internship_id) ON DELETE CASCADE
 );
 

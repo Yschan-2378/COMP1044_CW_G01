@@ -15,25 +15,35 @@ function student_payload(array $row): array
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    require_auth();
+    $user = require_auth();
 
     $search = substr(trim((string) ($_GET['search'] ?? '')), 0, 100);
-    if ($search !== '') {
-        $stmt = $pdo->prepare(
-            'SELECT student_id, student_name, programme
-             FROM Students
-             WHERE student_id LIKE ? OR student_name LIKE ?
-             ORDER BY student_name'
-        );
-        $term = '%' . $search . '%';
-        $stmt->execute([$term, $term]);
-    } else {
-        $stmt = $pdo->query(
-            'SELECT student_id, student_name, programme
-             FROM Students
-             ORDER BY student_name'
-        );
+    $params = [];
+    $where = [];
+
+    $sql = 'SELECT DISTINCT s.student_id, s.student_name, s.programme
+            FROM Students s';
+
+    if ($user['role'] === 'Assessor') {
+        $sql .= ' JOIN Internships i ON s.student_id = i.student_id';
+        $where[] = 'i.assessor_id = ?';
+        $params[] = $user['user_id'];
     }
+
+    if ($search !== '') {
+        $where[] = '(s.student_id LIKE ? OR s.student_name LIKE ?)';
+        $term = '%' . $search . '%';
+        $params[] = $term;
+        $params[] = $term;
+    }
+
+    if ($where) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY s.student_name';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     json_response(['students' => array_map('student_payload', $stmt->fetchAll(PDO::FETCH_ASSOC))]);
 }

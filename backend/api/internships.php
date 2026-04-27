@@ -5,6 +5,16 @@ require_once __DIR__ . '/bootstrap.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+function require_assessor_user(PDO $pdo, int $assessor_id): void
+{
+    $stmt = $pdo->prepare("SELECT user_id FROM Users WHERE user_id = ? AND role = 'Assessor'");
+    $stmt->execute([$assessor_id]);
+
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        validation_error(['assessor_id' => 'assessor_id must reference an assessor account.']);
+    }
+}
+
 if ($method === 'GET') {
     $user = require_auth();
 
@@ -39,6 +49,7 @@ if ($method === 'POST') {
     $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
     $assessor_id = validate_int($data['assessor_id'], 'assessor_id', 1);
     $company_name = validate_string($data['company_name'], 'company_name', 150, 2);
+    require_assessor_user($pdo, $assessor_id);
 
     $stmt = $pdo->prepare(
         'INSERT INTO Internships (student_id, assessor_id, company_name)
@@ -61,6 +72,7 @@ if ($method === 'PUT') {
     $student_id = validate_string($data['student_id'], 'student_id', 20, 4, '/^[A-Za-z0-9-]+$/');
     $assessor_id = validate_int($data['assessor_id'], 'assessor_id', 1);
     $company_name = validate_string($data['company_name'], 'company_name', 150, 2);
+    require_assessor_user($pdo, $assessor_id);
 
     $stmt = $pdo->prepare(
         'UPDATE Internships
